@@ -276,21 +276,21 @@ m.choose = function()
         m.switch(space)
       end)
 
-      local suggestions = {}
-      if space.suggestions then
-        suggestions = space.suggestions
+      local intentSuggestions = {}
+      if space.intentSuggestions then
+        intentSuggestions = space.intentSuggestions
       end
 
       local focused = hs.window.frontmostWindow()
-      table.insert(suggestions, 1, {
+      table.insert(intentSuggestions, 1, {
         text = focused:title():gsub(' . ' .. focused:application():name() , '')
       })
 
       intention
       :placeholderText("What do you intend?")
-      :choices(suggestions)
+      :choices(intentSuggestions)
       :queryChangedCallback(function(query)
-        local choices = fn.filter(suggestions, function(choice)
+        local choices = fn.filter(intentSuggestions, function(choice)
           hs.inspect(choice)
           return string.match(choice.text, query)
         end)
