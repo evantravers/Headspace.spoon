@@ -37,7 +37,7 @@
 --   subText = "More about the example",
 --   image = hs.image.imageFromAppBundle('foo.bar.com'),
 
---   setup = "example",
+--   funcs = "example",
 
 --   launch = {"table", "of", "tags"},
 --   blacklist = {"table", "of", "tags"},
@@ -48,9 +48,11 @@
 --   togglDescr = "description of toggl timer
 -- }
 --
--- config.spaces.setup.example = function()
---   hs.urlevent.openURL("http://hammerspoon.org")
--- end
+-- config.funcs.example = {
+--   setup = function()
+--     hs.urlevent.openURL("http://hammerspoon.org")
+--   end
+-- }
 --
 -- The goal is to get into another space, even when working from home.
 --
