@@ -62,10 +62,8 @@
 local module = {}
       module.tagged = {}
 
-local fn         = require('hs.fnutils')
-local toggl      = require('toggl')
-local autolayout = require('autolayout')
-                   require('hs.ipc')
+local fn    = require('hs.fnutils')
+local toggl = dofile(hs.spoons.resourcePath('toggl.lua'))
 
 local moduleStyle = fn.copy(hs.alert.defaultStyle)
       moduleStyle.atScreenEdge = 1
