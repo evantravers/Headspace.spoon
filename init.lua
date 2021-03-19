@@ -46,6 +46,9 @@
 
 --   togglProj = "id of toggl project",
 --   togglDescr = "description of toggl timer
+--
+--   intentRequired = true
+--   intentSuggestions = {}
 -- }
 --
 -- config.funcs.example = {
