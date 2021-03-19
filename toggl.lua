@@ -12,7 +12,7 @@ module.key = function()
   end
 end
 
-module.start_timer = function(project_id, description)
+module.startTimer = function(projectId, description)
   local key = module.key()
   hs.http.asyncPost(
     "https://www.toggl.com/api/v8/time_entries/start",
@@ -20,7 +20,7 @@ module.start_timer = function(project_id, description)
       {
         ['time_entry'] = {
           ['description'] = description,
-          ['pid'] = project_id,
+          ['pid'] = projectId,
           ['created_with'] = 'hammerspoon'
         }
       }
@@ -29,23 +29,23 @@ module.start_timer = function(project_id, description)
       ["Content-Type"] = "application/json; charset=UTF-8",
       ["Authorization"] = "Basic " .. hs.base64.encode(key .. ":api_token")
     },
-    function(http_number, body, headers)
+    function(httpNumber, body, headers)
       print("Timer started...")
       print(hs.inspect(body))
     end
   )
 end
 
-module.current_timer = function()
+module.currentTimer = function()
   local key = module.key()
-  http_number, body, headers = hs.http.get(
+  httpNumber, body, headers = hs.http.get(
     "https://www.toggl.com/api/v8/time_entries/current",
     {
       ["Content-Type"] = "application/json; charset=UTF-8",
       ["Authorization"] = "Basic " .. hs.base64.encode(key .. ":api_token")
     }
   )
-  if http_number == 200 then
+  if httpNumber == 200 then
     if body == '{"data":null}' then
       return nil
     else
@@ -53,34 +53,34 @@ module.current_timer = function()
     end
   else
     print("problems!")
-    print(http_number)
+    print(httpNumber)
     print(body)
   end
 end
 
-module.get_project = function(pid)
+module.getProject = function(pid)
   local key = module.key()
-  http_number, body, headers = hs.http.get(
+  httpNumber, body, headers = hs.http.get(
     "https://www.toggl.com/api/v8/projects/" .. pid,
     {
       ["Content-Type"] = "application/json; charset=UTF-8",
       ["Authorization"] = "Basic " .. hs.base64.encode(key .. ":api_token")
     }
   )
-  if http_number == 200 then
+  if httpNumber == 200 then
     return hs.json.decode(body)
   else
     print("problems!")
-    print(http_number)
+    print(httpNumber)
     print(body)
   end
 end
 
-module.stop_timer = function()
-  local current = module.current_timer()
+module.stopTimer = function()
+  local current = module.currentTimer()
   if current then
     local key = module.key()
-    http_number, body, headers = hs.http.doRequest(
+    httpNumber, body, headers = hs.http.doRequest(
       "https://www.toggl.com/api/v8/time_entries/" .. current['data']['id'] .. "/stop",
       "PUT",
       nil,
@@ -89,11 +89,11 @@ module.stop_timer = function()
         ["Authorization"] = "Basic " .. hs.base64.encode(key .. ":api_token")
       }
     )
-    if http_number == 200 then
+    if httpNumber == 200 then
       return hs.json.decode(body)
     else
       print("problems!")
-      print(http_number)
+      print(httpNumber)
       print(body)
     end
   else

@@ -44,8 +44,8 @@
 --   == OR ==
 --   whitelist = {"table", "of", "tags"}
 
---   toggl_proj = "id of toggl project",
---   toggl_descr = "description of toggl timer
+--   togglProj = "id of toggl project",
+--   togglDescr = "description of toggl timer
 -- }
 --
 -- config.spaces.setup.example = function()
@@ -79,9 +79,9 @@ m.init = function()
   m.tagged = {}
 end
 
-m.enable_watcher = function(self) self.watcher_enabled = true end
+m.enableWatcher = function(self) self.watcherEnabled = true end
 
-local set_space = function(space)
+local setSpace = function(space)
   hs.settings.set('headspace', {
     text = space.text,
     whitelist = space.whitelist,
@@ -91,32 +91,32 @@ local set_space = function(space)
   })
 end
 
-local compute_tagged = function(list_of_applications)
-  fn.map(list_of_applications, function(app_config)
-    if app_config.tags then
-      fn.map(app_config.tags, function(tag)
+local computeTagged = function(listOfApplications)
+  fn.map(listOfApplications, function(appConfig)
+    if appConfig.tags then
+      fn.map(appConfig.tags, function(tag)
         if not m.tagged[tag] then module.tagged[tag] = {} end
-        table.insert(m.tagged[tag], app_config.bundleID)
+        table.insert(m.tagged[tag], appConfig.bundleID)
       end)
     end
   end)
 end
 
-local allowed = function(app_config)
-  if app_config and app_config.tags then
-    if app_config.whitelisted then
+local allowed = function(appConfig)
+  if appConfig and appConfig.tags then
+    if appConfig.whitelisted then
       return true
     else
       local space = hs.settings.get("headspace")
       if space then
         if space.whitelist then
           return fn.some(space.whitelist, function(tag)
-            return fn.contains(m.tagged[tag], app_config.bundleID)
+            return fn.contains(m.tagged[tag], appConfig.bundleID)
           end)
         else
           if space.blacklist then
             return fn.every(space.blacklist, function(tag)
-              return not fn.contains(app_config.tags, tag)
+              return not fn.contains(appConfig.tags, tag)
             end)
           end
         end
@@ -127,17 +127,17 @@ local allowed = function(app_config)
 end
 
 -- Expects a table with a key for "spaces" and a key for "setup".
-m.start = function(config_table)
-  m.config = config_table
+m.start = function(configTable)
+  m.config = configTable
 
-  compute_tagged(config_table.applications)
+  computeTagged(configTable.applications)
 
-  if m.watcher_enabled then
-    m.watcher = hs.application.watcher.new(function(app_name, event, hsapp)
+  if m.watcherEnabled then
+    m.watcher = hs.application.watcher.new(function(appName, event, hsapp)
       if event == hs.application.watcher.launched then
-        local app_config = m.config.applications[hsapp:bundleID()]
+        local appConfig = m.config.applications[hsapp:bundleID()]
 
-        if not allowed(app_config) then
+        if not allowed(appConfig) then
           hs.alert(
             "🛑: " .. hsapp:name() .. "\n" ..
             "📂: " .. hs.settings.get("headspace").text,
@@ -150,23 +150,23 @@ m.start = function(config_table)
   end
 end
 
-local has_func = function(key, func)
+local hasFunc = function(key, func)
   return m.config.funcs[key] and module.config.funcs[key][func]
 end
 
 m.switch = function(space)
   if space ~= nil then
 
-    local previous_space = hs.settings.get('headspace')
+    local previousSpace = hs.settings.get('headspace')
     -- teardown the previous space
-    if previous_space then
-      if has_func(previous_space.funcs, 'teardown') then
-        m.config.funcs[previous_space.funcs].teardown()
+    if previousSpace then
+      if hasFunc(previousSpace.funcs, 'teardown') then
+        m.config.funcs[previousSpace.funcs].teardown()
       end
     end
 
     -- Store headspace in hs.settings
-    set_space(space)
+    setSpace(space)
 
     -- Start timer unless holding shift
     if not hs.eventtap.checkKeyboardModifiers()['shift'] then
@@ -177,32 +177,32 @@ m.switch = function(space)
       if m.parsedQuery.description then
         description = m.parsedQuery.description
       else
-        description = space.toggl_desc
+        description = space.togglDesc
       end
 
-      if space.toggl_proj or description then
-        toggl.start_timer(space.toggl_proj, description)
+      if space.togglProj or description then
+        toggl.startTimer(space.togglProj, description)
       end
     end
 
     -- launch / close apps
     if space.launch then
-      m.tags_to_bundleID(space.launch, function(bundleID)
+      m.tagsToBundleid(space.launch, function(bundleID)
         hs.application.launchOrFocusByBundleID(bundleID)
       end)
     end
 
     if space.blacklist then
-      m.tags_to_bundleID(space.blacklist, function(bundleID)
+      m.tagsToBundleid(space.blacklist, function(bundleID)
         local app = hs.application.get(bundleID)
         if app then app:kill() end
       end)
     end
 
     if space.whitelist then
-      fn.map(m.config.applications, function(app_config)
-        if not allowed(app_config) then
-          local app = hs.application.get(app_config.bundleID)
+      fn.map(m.config.applications, function(appConfig)
+        if not allowed(appConfig) then
+          local app = hs.application.get(appConfig.bundleID)
           if app then
             app:kill()
           end
@@ -211,7 +211,7 @@ m.switch = function(space)
     end
 
     -- run setup()
-    if has_func(space.funcs, 'setup') then
+    if hasFunc(space.funcs, 'setup') then
       m.config.funcs[space.funcs].setup()
     end
 
@@ -251,7 +251,7 @@ m.filter = function(searchQuery)
     text = query,
     subText = "Start a toggl timer with this description...",
     image = hs.image.imageFromAppBundle('com.toggl.toggldesktop.TogglDesktop'),
-    toggl_desc = parsedQuery.query
+    togglDesc = parsedQuery.query
   })
 
   return results
@@ -259,7 +259,7 @@ end
 
 m.choose = function()
   local chooser = hs.chooser.new(function(space)
-    if space.intent_required and not m.parsedQuery.description then
+    if space.intentRequired and not m.parsedQuery.description then
       local intention = hs.chooser.new(function(descr)
         m.parsedQuery.description = descr.text
         m.switch(space)
@@ -286,7 +286,7 @@ m.choose = function()
 
         table.insert(choices, {
           text = query,
-          toggl_desc = query
+          togglDesc = query
         })
 
         intention:choices(choices)
@@ -304,21 +304,21 @@ m.choose = function()
       chooser:choices(m.filter(query))
     end)
     :showCallback(function()
-      if m.timer_str() ~= "" then
-        chooser:placeholderText(m.timer_str())
+      if m.timerStr() ~= "" then
+        chooser:placeholderText(m.timerStr())
       end
     end)
     :show()
 end
 
-m.timer_str = function()
+m.timerStr = function()
   local str = ""
 
   local space = hs.settings.get("headspace")
-  local running_timer = toggl.current_timer()
+  local runningTimer = toggl.currentTimer()
 
-  if running_timer and running_timer.data then
-    local timer = running_timer.data
+  if runningTimer and runningTimer.data then
+    local timer = runningTimer.data
 
     local descr = ""
     if timer.description then
@@ -327,7 +327,7 @@ m.timer_str = function()
 
     local proj = ""
     if timer.pid then
-      local project = toggl.get_project(timer.pid)
+      local project = toggl.getProject(timer.pid)
       if project and project.data then
         proj = project.data.name .. " "
       end
@@ -337,7 +337,7 @@ m.timer_str = function()
     if m.timer then
       duration = "-" .. math.ceil(m.timer:nextTrigger() / 60) .. "m"
     else
-      duration = math.floor((hs.timer.secondsSinceEpoch() + running_timer.data.duration) / 60) .. "m"
+      duration = math.floor((hs.timer.secondsSinceEpoch() + runningTimer.data.duration) / 60) .. "m"
     end
 
     str = proj .. descr .. "(" .. duration .. ")"
@@ -360,18 +360,18 @@ end
 
 m.parseQuery = function(query)
   -- extract out description: any "string" or 'string'
-  local description_pattern = "[\'\"](.+)[\'\"]"
-  local description = string.match(query, description_pattern)
+  local descriptionPattern = "[\'\"](.+)[\'\"]"
+  local description = string.match(query, descriptionPattern)
   -- extract out duration: a colon followed by number of minutes (:45)
-  local duration_pattern    = ":(%d+)"
-  local duration    = string.match(query, duration_pattern)
+  local durationPattern    = ":(%d+)"
+  local duration    = string.match(query, durationPattern)
 
   return {
     description = description,
     duration = tonumber(duration),
     query = query
-            :gsub(description_pattern, "")
-            :gsub(duration_pattern, "")
+            :gsub(descriptionPattern, "")
+            :gsub(durationPattern, "")
             :gsub("^%s*(.-)%s*$", "%1") -- trim
   }
 end
@@ -380,10 +380,10 @@ m.appsTaggedWith = function(tag)
   return m.tagged[tag]
 end
 
-m.tags_to_bundleID = function(list_of_tags, func)
-  fn.map(list_of_tags, function(tag)
-    fn.map(m.appsTaggedWith(tag), function(app_config)
-      func(app_config)
+m.tagsToBundleid = function(listOfTags, func)
+  fn.map(listOfTags, function(tag)
+    fn.map(m.appsTaggedWith(tag), function(appConfig)
+      func(appConfig)
     end)
   end)
 end
