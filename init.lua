@@ -65,7 +65,10 @@ local m = {
   name = "Headspace",
   version = "1.0",
   author = "Evan Travers <evantravers@gmail.com>",
-  license = "FIXME"
+  license = "FIXME",
+  homepage = "https://github.com/evantravers/headspace.spoon"
+
+  tagged = {}
 }
 
 local fn    = require('hs.fnutils')
@@ -76,10 +79,6 @@ local moduleStyle = fn.copy(hs.alert.defaultStyle)
       moduleStyle.strokeColor = { white = 1, alpha = 0 }
       moduleStyle.textSize = 36
       moduleStyle.radius = 9
-
-m.init = function()
-  m.tagged = {}
-end
 
 m.enableWatcher = function(self) self.watcherEnabled = true end
 
