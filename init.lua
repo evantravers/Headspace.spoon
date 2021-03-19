@@ -127,12 +127,14 @@ local allowed = function(appConfig)
   return true
 end
 
--- Expects a table with a key for "spaces" and a key for "setup".
-m.start = function(configTable)
+m.loadSpaces = function(configTable)
   m.config = configTable
 
   computeTagged(configTable.applications)
+end
 
+-- Expects a table with a key for "spaces" and a key for "setup".
+m.start = function()
   if m.watcherEnabled then
     m.watcher = hs.application.watcher.new(function(appName, event, hsapp)
       if event == hs.application.watcher.launched then
@@ -149,6 +151,14 @@ m.start = function(configTable)
       end
     end):start()
   end
+end
+
+m.stop = function()
+  -- kill any watchers
+  m.watcher = nil
+  m.watcherEnabled = false
+  -- kill any timers
+  m.timer = nil
 end
 
 local hasFunc = function(key, func)
