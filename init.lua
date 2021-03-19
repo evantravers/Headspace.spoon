@@ -69,7 +69,7 @@ local m = {
   version = "1.0",
   author = "Evan Travers <evantravers@gmail.com>",
   license = "FIXME",
-  homepage = "https://github.com/evantravers/headspace.spoon"
+  homepage = "https://github.com/evantravers/headspace.spoon",
 
   tagged = {}
 }
