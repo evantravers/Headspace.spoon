@@ -59,8 +59,12 @@
 -- Custom Desktop Background with prompts for focus, writing, code?
 -- Musical cues?
 
-local module = {}
-      module.tagged = {}
+local m = {
+  name = "Headspace",
+  version = "1.0",
+  author = "Evan Travers <evantravers@gmail.com>",
+  license = "FIXME"
+}
 
 local fn    = require('hs.fnutils')
 local toggl = dofile(hs.spoons.resourcePath('toggl.lua'))
@@ -71,7 +75,11 @@ local moduleStyle = fn.copy(hs.alert.defaultStyle)
       moduleStyle.textSize = 36
       moduleStyle.radius = 9
 
-module.enable_watcher = function(self) self.watcher_enabled = true end
+m.init = function()
+  m.tagged = {}
+end
+
+m.enable_watcher = function(self) self.watcher_enabled = true end
 
 local set_space = function(space)
   hs.settings.set('headspace', {
@@ -87,8 +95,8 @@ local compute_tagged = function(list_of_applications)
   fn.map(list_of_applications, function(app_config)
     if app_config.tags then
       fn.map(app_config.tags, function(tag)
-        if not module.tagged[tag] then module.tagged[tag] = {} end
-        table.insert(module.tagged[tag], app_config.bundleID)
+        if not m.tagged[tag] then module.tagged[tag] = {} end
+        table.insert(m.tagged[tag], app_config.bundleID)
       end)
     end
   end)
@@ -103,7 +111,7 @@ local allowed = function(app_config)
       if space then
         if space.whitelist then
           return fn.some(space.whitelist, function(tag)
-            return fn.contains(module.tagged[tag], app_config.bundleID)
+            return fn.contains(m.tagged[tag], app_config.bundleID)
           end)
         else
           if space.blacklist then
@@ -119,15 +127,15 @@ local allowed = function(app_config)
 end
 
 -- Expects a table with a key for "spaces" and a key for "setup".
-module.start = function(config_table)
-  module.config = config_table
+m.start = function(config_table)
+  m.config = config_table
 
   compute_tagged(config_table.applications)
 
-  if module.watcher_enabled then
-    module.watcher = hs.application.watcher.new(function(app_name, event, hsapp)
+  if m.watcher_enabled then
+    m.watcher = hs.application.watcher.new(function(app_name, event, hsapp)
       if event == hs.application.watcher.launched then
-        local app_config = module.config.applications[hsapp:bundleID()]
+        local app_config = m.config.applications[hsapp:bundleID()]
 
         if not allowed(app_config) then
           hs.alert(
@@ -143,51 +151,19 @@ module.start = function(config_table)
 end
 
 local has_func = function(key, func)
-  return module.config.funcs[key] and module.config.funcs[key][func]
+  return m.config.funcs[key] and module.config.funcs[key][func]
 end
 
-module.alfred = function(query)
-  return module.to_json(module.filter(query))
-end
-
-module.to_json = function(spaces)
-  return hs.json.encode({
-    rerun = 1,
-    variables = {
-      timer_str = module.timer_str()
-    },
-    items =
-      fn.map(spaces, function(space)
-        return
-        {
-          title = space.text,
-          subtitle = space.subText,
-          arg = space.text,
-          match = space.text .. ' ' .. space.subText
-        }
-      end)
-  })
-end
-
-module.switch_space_by_name = function(name)
-  module.switch(
-    hs.fnutils.find(
-      module.config.spaces,
-      function(spc) return spc.text == name end)
-  )
-end
-
-module.switch = function(space)
+m.switch = function(space)
   if space ~= nil then
 
     local previous_space = hs.settings.get('headspace')
     -- teardown the previous space
     if previous_space then
       if has_func(previous_space.funcs, 'teardown') then
-        module.config.funcs[previous_space.funcs].teardown()
+        m.config.funcs[previous_space.funcs].teardown()
       end
     end
-    module.config.layouts = nil
 
     -- Store headspace in hs.settings
     set_space(space)
@@ -198,8 +174,8 @@ module.switch = function(space)
       -- Get either the space's default description or one passed between
       -- quotes.
       local description = nil
-      if module.parsedQuery.description then
-        description = module.parsedQuery.description
+      if m.parsedQuery.description then
+        description = m.parsedQuery.description
       else
         description = space.toggl_desc
       end
@@ -211,20 +187,20 @@ module.switch = function(space)
 
     -- launch / close apps
     if space.launch then
-      module.tags_to_bundleID(space.launch, function(bundleID)
+      m.tags_to_bundleID(space.launch, function(bundleID)
         hs.application.launchOrFocusByBundleID(bundleID)
       end)
     end
 
     if space.blacklist then
-      module.tags_to_bundleID(space.blacklist, function(bundleID)
+      m.tags_to_bundleID(space.blacklist, function(bundleID)
         local app = hs.application.get(bundleID)
         if app then app:kill() end
       end)
     end
 
     if space.whitelist then
-      fn.map(module.config.applications, function(app_config)
+      fn.map(m.config.applications, function(app_config)
         if not allowed(app_config) then
           local app = hs.application.get(app_config.bundleID)
           if app then
@@ -236,39 +212,38 @@ module.switch = function(space)
 
     -- run setup()
     if has_func(space.funcs, 'setup') then
-      module.config.funcs[space.funcs].setup()
+      m.config.funcs[space.funcs].setup()
     end
 
     -- use layout
     if space.layouts then
-      module.config.layouts = space.layouts
-      autolayout.autoLayout()
+      hs.window.layout.applyLayout(space.layouts)
     end
 
-    if module.parsedQuery.duration then -- make this a timed session
-      module.timer =
-        hs.timer.doAfter(module.parsedQuery.duration * 60, function()
+    if m.parsedQuery.duration then -- make this a timed session
+      m.timer =
+        hs.timer.doAfter(m.parsedQuery.duration * 60, function()
           hs.sound.getByName("Blow"):play()
           hs.alert(
             "⏲: Time is up!",
             moduleStyle
           )
-          module.choose()
-          module.timer = nil
+          m.choose()
+          m.timer = nil
         end)
     end
   end
 end
 
-module.filter = function(searchQuery)
-  local parsedQuery = module.parseQuery(searchQuery)
+m.filter = function(searchQuery)
+  local parsedQuery = m.parseQuery(searchQuery)
 
-  local query = module.lowerOrEmpty(parsedQuery.query)
-  module.parsedQuery = parsedQuery -- store this for later
+  local query = m.lowerOrEmpty(parsedQuery.query)
+  m.parsedQuery = parsedQuery -- store this for later
 
-  local results = fn.filter(module.config.spaces, function(space)
-    local text = module.lowerOrEmpty(space.text)
-    local subText = module.lowerOrEmpty(space.subText)
+  local results = fn.filter(m.config.spaces, function(space)
+    local text = m.lowerOrEmpty(space.text)
+    local subText = m.lowerOrEmpty(space.subText)
     return (string.match(text, query) or string.match(subText, query))
   end)
 
@@ -282,12 +257,12 @@ module.filter = function(searchQuery)
   return results
 end
 
-module.choose = function()
+m.choose = function()
   local chooser = hs.chooser.new(function(space)
-    if space.intent_required and not module.parsedQuery.description then
+    if space.intent_required and not m.parsedQuery.description then
       local intention = hs.chooser.new(function(descr)
-        module.parsedQuery.description = descr.text
-        module.switch(space)
+        m.parsedQuery.description = descr.text
+        m.switch(space)
       end)
 
       local suggestions = {}
@@ -318,25 +293,25 @@ module.choose = function()
       end)
       :show()
     else
-      module.switch(space)
+      m.switch(space)
     end
   end)
 
   chooser
     :placeholderText("Select a headspace…")
-    :choices(module.config.spaces)
+    :choices(m.config.spaces)
     :queryChangedCallback(function(query)
-      chooser:choices(module.filter(query))
+      chooser:choices(m.filter(query))
     end)
     :showCallback(function()
-      if module.timer_str() ~= "" then
-        chooser:placeholderText(module.timer_str())
+      if m.timer_str() ~= "" then
+        chooser:placeholderText(m.timer_str())
       end
     end)
     :show()
 end
 
-module.timer_str = function()
+m.timer_str = function()
   local str = ""
 
   local space = hs.settings.get("headspace")
@@ -359,8 +334,8 @@ module.timer_str = function()
     end
 
     local duration = ""
-    if module.timer then
-      duration = "-" .. math.ceil(module.timer:nextTrigger() / 60) .. "m"
+    if m.timer then
+      duration = "-" .. math.ceil(m.timer:nextTrigger() / 60) .. "m"
     else
       duration = math.floor((hs.timer.secondsSinceEpoch() + running_timer.data.duration) / 60) .. "m"
     end
@@ -375,7 +350,7 @@ module.timer_str = function()
   return str
 end
 
-module.lowerOrEmpty = function(str)
+m.lowerOrEmpty = function(str)
   if str then
     return string.lower(str)
   else
@@ -383,7 +358,7 @@ module.lowerOrEmpty = function(str)
   end
 end
 
-module.parseQuery = function(query)
+m.parseQuery = function(query)
   -- extract out description: any "string" or 'string'
   local description_pattern = "[\'\"](.+)[\'\"]"
   local description = string.match(query, description_pattern)
@@ -401,16 +376,16 @@ module.parseQuery = function(query)
   }
 end
 
-module.appsTaggedWith = function(tag)
-  return module.tagged[tag]
+m.appsTaggedWith = function(tag)
+  return m.tagged[tag]
 end
 
-module.tags_to_bundleID = function(list_of_tags, func)
+m.tags_to_bundleID = function(list_of_tags, func)
   fn.map(list_of_tags, function(tag)
-    fn.map(module.appsTaggedWith(tag), function(app_config)
+    fn.map(m.appsTaggedWith(tag), function(app_config)
       func(app_config)
     end)
   end)
 end
 
-return module
+return m
