@@ -279,7 +279,7 @@ end
 
 m.choose = function()
   local chooser = hs.chooser.new(function(space)
-    if space.intentRequired and not m.parsedQuery.description then
+    if space and space.intentRequired and not m.parsedQuery.description then
       local intention = hs.chooser.new(function(descr)
         m.parsedQuery.description = descr.text
         m.switch(space)
