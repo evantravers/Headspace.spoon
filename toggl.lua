@@ -2,9 +2,9 @@
 --
 -- Relies on a toggl api key in `hs.settings.get('secrets').toggl.key`.
 
-local module = {}
+local m = {}
 
-module.key = function()
+m.key = function()
   if hs.settings.get("secrets").toggl.key then
     return hs.settings.get("secrets").toggl.key
   else
@@ -12,8 +12,8 @@ module.key = function()
   end
 end
 
-module.startTimer = function(projectId, description)
-  local key = module.key()
+m.startTimer = function(projectId, description)
+  local key = m.key()
   hs.http.asyncPost(
     "https://www.toggl.com/api/v8/time_entries/start",
     hs.json.encode(
@@ -36,8 +36,8 @@ module.startTimer = function(projectId, description)
   )
 end
 
-module.currentTimer = function(callback)
-  local key = module.key()
+m.currentTimer = function(callback)
+  local key = m.key()
   hs.http.asyncGet(
     "https://www.toggl.com/api/v8/time_entries/current",
     {
@@ -60,8 +60,8 @@ module.currentTimer = function(callback)
   )
 end
 
-module.getProject = function(pid)
-  local key = module.key()
+m.getProject = function(pid)
+  local key = m.key()
   httpNumber, body, headers = hs.http.get(
     "https://www.toggl.com/api/v8/projects/" .. pid,
     {
@@ -78,10 +78,10 @@ module.getProject = function(pid)
   end
 end
 
-module.stopTimer = function()
-  local current = module.currentTimer()
+m.stopTimer = function()
+  local current = m.currentTimer()
   if current then
-    local key = module.key()
+    local key = m.key()
     httpNumber, body, headers = hs.http.doRequest(
       "https://www.toggl.com/api/v8/time_entries/" .. current['data']['id'] .. "/stop",
       "PUT",
@@ -103,4 +103,4 @@ module.stopTimer = function()
   end
 end
 
-return module
+return m
