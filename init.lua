@@ -131,6 +131,12 @@ end
 function m:loadConfig(configTable)
   m.config = configTable
   computeTagged(m.config.applications)
+  return self
+end
+
+function m:setTogglKey(key)
+  toggl:setKey(key)
+  return self
 end
 
 function m:start()

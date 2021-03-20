@@ -1,14 +1,17 @@
 -- TOGGL
---
--- Relies on a toggl api key in `hs.settings.get('secrets').toggl.key`.
 
 local m = {}
 
+function m:setKey(key)
+  m.apiToken = key
+  return self
+end
+
 m.key = function()
-  if hs.settings.get("secrets").toggl.key then
-    return hs.settings.get("secrets").toggl.key
+  if m.apiToken then
+    return m.apiToken
   else
-    print("You need to load a Toggl.com API key in to hs.settings under secrets.toggl.key")
+    print("You need to load a Toggl.com API key using toggl:setKey(key)")
   end
 end
 
