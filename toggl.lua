@@ -82,8 +82,7 @@ m.getProject = function(pid)
 end
 
 m.stopTimer = function()
-  local current = m.currentTimer()
-  if current then
+  m.currentTimer(function(current)
     local key = m.key()
     httpNumber, body, headers = hs.http.doRequest(
       "https://www.toggl.com/api/v8/time_entries/" .. current['data']['id'] .. "/stop",
@@ -101,9 +100,7 @@ m.stopTimer = function()
       print(httpNumber)
       print(body)
     end
-  else
-    print("No timer running!")
-  end
+  end)
 end
 
 return m
