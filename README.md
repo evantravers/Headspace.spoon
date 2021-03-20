@@ -30,5 +30,6 @@ local config = {
 hs.loadSpoon('Headspace')
 spoon.Headspace:start()
                :bindHotKeys({ choose = {{'control'}, 'space'}})
+               :setTogglKey('string of toggl API key')
                :loadConfig(config)
 ```
