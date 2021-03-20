@@ -70,7 +70,6 @@ local m = {
   author = "Evan Travers <evantravers@gmail.com>",
   license = "FIXME",
   homepage = "https://github.com/evantravers/headspace.spoon",
-
   tagged = {}
 }
 
@@ -82,11 +81,6 @@ local moduleStyle = fn.copy(hs.alert.defaultStyle)
       moduleStyle.strokeColor = { white = 1, alpha = 0 }
       moduleStyle.textSize = 36
       moduleStyle.radius = 9
-
-function m:enableWatcher()
-  self.watcherEnabled = true
-  return self
-end
 
 local setSpace = function(space)
   hs.settings.set('headspace', {
@@ -102,7 +96,7 @@ local computeTagged = function(listOfApplications)
   fn.map(listOfApplications, function(appConfig)
     if appConfig.tags then
       fn.map(appConfig.tags, function(tag)
-        if not m.tagged[tag] then module.tagged[tag] = {} end
+        if not m.tagged[tag] then m.tagged[tag] = {} end
         table.insert(m.tagged[tag], appConfig.bundleID)
       end)
     end
@@ -139,24 +133,21 @@ function m:loadConfig(configTable)
   computeTagged(m.config.applications)
 end
 
--- Expects a table with a key for "spaces" and a key for "setup".
 function m:start()
-  if m.watcherEnabled then
-    m.watcher = hs.application.watcher.new(function(appName, event, hsapp)
-      if event == hs.application.watcher.launched then
-        local appConfig = m.config.applications[hsapp:bundleID()]
+  m.watcher = hs.application.watcher.new(function(appName, event, hsapp)
+    if event == hs.application.watcher.launched then
+      local appConfig = m.config.applications[hsapp:bundleID()]
 
-        if not allowed(appConfig) then
-          hs.alert(
-            "🛑: " .. hsapp:name() .. "\n" ..
-            "📂: " .. hs.settings.get("headspace").text,
-            moduleStyle
-          )
-          hsapp:kill()
-        end
+      if not allowed(appConfig) then
+        hs.alert(
+          "🛑: " .. hsapp:name() .. "\n" ..
+          "📂: " .. hs.settings.get("headspace").text,
+          moduleStyle
+        )
+        hsapp:kill()
       end
-    end):start()
-  end
+    end
+  end):start()
 
   return self
 end
@@ -164,7 +155,6 @@ end
 function m:stop()
   -- kill any watchers
   m.watcher = nil
-  m.watcherEnabled = false
   -- kill any timers
   m.timer = nil
 
@@ -181,7 +171,7 @@ function m:bindHotKeys(mapping)
 end
 
 local hasFunc = function(key, func)
-  return m.config.funcs[key] and module.config.funcs[key][func]
+  return m.config.funcs[key] and m.config.funcs[key][func]
 end
 
 m.switch = function(space)
