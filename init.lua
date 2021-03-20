@@ -83,7 +83,10 @@ local moduleStyle = fn.copy(hs.alert.defaultStyle)
       moduleStyle.textSize = 36
       moduleStyle.radius = 9
 
-m.enableWatcher = function(self) self.watcherEnabled = true end
+function m:enableWatcher()
+  self.watcherEnabled = true
+  return self
+end
 
 local setSpace = function(space)
   hs.settings.set('headspace', {
