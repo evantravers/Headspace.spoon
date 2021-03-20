@@ -1,5 +1,14 @@
 # Headspace
 
+A combination Toggl client and definer of workspaces. I use it to prevent me
+from keeping open distracting appliacations when I should be working.
+
+Requires:
+- A toggl API token.
+  ([instructions](https://support.toggl.com/en/articles/3116844-where-is-my-api-token-located))
+- A configuration table of spaces and applications. You can find mine
+  [here](https://github.com/evantravers/hammerspoon-config/blob/master/init.lua).
+
 ```lua
 local config = {
   spaces = {
