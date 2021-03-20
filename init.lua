@@ -324,18 +324,17 @@ m.choose = function()
       chooser:choices(m.filter(query))
     end)
     :showCallback(function()
-      if m.timerStr() ~= "" then
-        chooser:placeholderText(m.timerStr())
-      end
+      toggl.currentTimer(function(timer)
+        chooser:placeholderText(m.timerStr(timer))
+      end)
     end)
     :show()
 end
 
-m.timerStr = function()
+m.timerStr = function(runningTimer)
   local str = ""
 
   local space = hs.settings.get("headspace")
-  local runningTimer = toggl.currentTimer()
 
   if runningTimer and runningTimer.data then
     local timer = runningTimer.data

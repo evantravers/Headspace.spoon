@@ -36,26 +36,28 @@ module.startTimer = function(projectId, description)
   )
 end
 
-module.currentTimer = function()
+module.currentTimer = function(callback)
   local key = module.key()
-  httpNumber, body, headers = hs.http.get(
+  hs.http.asyncGet(
     "https://www.toggl.com/api/v8/time_entries/current",
     {
       ["Content-Type"] = "application/json; charset=UTF-8",
       ["Authorization"] = "Basic " .. hs.base64.encode(key .. ":api_token")
-    }
-  )
-  if httpNumber == 200 then
-    if body == '{"data":null}' then
-      return nil
-    else
-      return hs.json.decode(body)
+    },
+    function(httpNumber, body, headers)
+      if httpNumber == 200 then
+        if body == '{"data":null}' then
+          return nil
+        else
+          callback(hs.json.decode(body))
+        end
+      else
+        print("problems!")
+        print(httpNumber)
+        print(body)
+      end
     end
-  else
-    print("problems!")
-    print(httpNumber)
-    print(body)
-  end
+  )
 end
 
 module.getProject = function(pid)
