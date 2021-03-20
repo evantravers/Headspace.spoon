@@ -130,14 +130,14 @@ local allowed = function(appConfig)
   return true
 end
 
-m.loadSpaces = function(configTable)
+-- FIXME: Do error checking when loaded? (should be applications, etc.)
+function m:loadConfig(configTable)
   m.config = configTable
-
-  computeTagged(configTable.applications)
+  computeTagged(m.config.applications)
 end
 
 -- Expects a table with a key for "spaces" and a key for "setup".
-m.start = function()
+function m:start()
   if m.watcherEnabled then
     m.watcher = hs.application.watcher.new(function(appName, event, hsapp)
       if event == hs.application.watcher.launched then
@@ -154,14 +154,27 @@ m.start = function()
       end
     end):start()
   end
+
+  return self
 end
 
-m.stop = function()
+function m:stop()
   -- kill any watchers
   m.watcher = nil
   m.watcherEnabled = false
   -- kill any timers
   m.timer = nil
+
+  return self
+end
+
+function m:bindHotKeys(mapping)
+  local spec = {
+    choose = hs.fnutils.partial(self.choose, self)
+  }
+  hs.spoons.bindHotkeysToSpec(spec, mapping)
+
+  return self
 end
 
 local hasFunc = function(key, func)
