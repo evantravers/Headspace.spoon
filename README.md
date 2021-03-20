@@ -7,7 +7,7 @@ local config = {
       text = "Deep",
       subText = "Work on focused work.",
       blacklist = {'distraction'},
-      intent_required = true
+      intentRequired = true
     },
     {
       shallow = "Communication",
