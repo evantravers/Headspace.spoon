@@ -134,6 +134,10 @@ function m:setTogglKey(key)
   return self
 end
 
+m.stopToggl = function()
+  toggl.stopTimer()
+end
+
 m.choose = function()
   local chooser = hs.chooser.new(function(space)
     if space and space.intentRequired and not m.parsedQuery.description then
