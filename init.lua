@@ -73,6 +73,8 @@ local m = {
   tagged = {}
 }
 
+-- CONFIG ==============
+
 local fn    = require('hs.fnutils')
 local toggl = dofile(hs.spoons.resourcePath('toggl.lua'))
 
@@ -82,69 +84,13 @@ local moduleStyle = fn.copy(hs.alert.defaultStyle)
       moduleStyle.textSize = 36
       moduleStyle.radius = 9
 
-local setSpace = function(space)
-  hs.settings.set('headspace', {
-    text = space.text,
-    whitelist = space.whitelist,
-    blacklist = space.blacklist,
-    launch = space.launch,
-    funcs = space.funcs
-  })
-end
-
-local computeTagged = function(listOfApplications)
-  fn.map(listOfApplications, function(appConfig)
-    if appConfig.tags then
-      fn.map(appConfig.tags, function(tag)
-        if not m.tagged[tag] then m.tagged[tag] = {} end
-        table.insert(m.tagged[tag], appConfig.bundleID)
-      end)
-    end
-  end)
-end
-
-local allowed = function(appConfig)
-  if appConfig and appConfig.tags then
-    if appConfig.whitelisted then
-      return true
-    else
-      local space = hs.settings.get("headspace")
-      if space then
-        if space.whitelist then
-          return fn.some(space.whitelist, function(tag)
-            return fn.contains(m.tagged[tag], appConfig.bundleID)
-          end)
-        else
-          if space.blacklist then
-            return fn.every(space.blacklist, function(tag)
-              return not fn.contains(appConfig.tags, tag)
-            end)
-          end
-        end
-      end
-    end
-  end
-  return true
-end
-
--- FIXME: Do error checking when loaded? (should be applications, etc.)
-function m:loadConfig(configTable)
-  m.config = configTable
-  computeTagged(m.config.applications)
-  return self
-end
-
-function m:setTogglKey(key)
-  toggl:setKey(key)
-  return self
-end
-
+-- API =================
 function m:start()
   m.watcher = hs.application.watcher.new(function(appName, event, hsapp)
     if event == hs.application.watcher.launched then
       local appConfig = m.config.applications[hsapp:bundleID()]
 
-      if not allowed(appConfig) then
+      if not m.allowed(appConfig) then
         hs.alert(
           "🛑: " .. hsapp:name() .. "\n" ..
           "📂: " .. hs.settings.get("headspace").text,
@@ -176,111 +122,16 @@ function m:bindHotKeys(mapping)
   return self
 end
 
-local hasFunc = function(key, func)
-  return m.config.funcs[key] and m.config.funcs[key][func]
+-- FIXME: Do error checking when loaded? (should be applications, etc.)
+function m:loadConfig(configTable)
+  m.config = configTable
+  m.computeTagged(m.config.applications)
+  return self
 end
 
-m.switch = function(space)
-  if space ~= nil then
-
-    local previousSpace = hs.settings.get('headspace')
-    -- teardown the previous space
-    if previousSpace then
-      if hasFunc(previousSpace.funcs, 'teardown') then
-        m.config.funcs[previousSpace.funcs].teardown()
-      end
-    end
-
-    -- Store headspace in hs.settings
-    setSpace(space)
-
-    -- Start timer unless holding shift
-    if not hs.eventtap.checkKeyboardModifiers()['shift'] then
-
-      -- Get either the space's default description or one passed between
-      -- quotes.
-      local description = nil
-      if m.parsedQuery.description then
-        description = m.parsedQuery.description
-      else
-        description = space.togglDesc
-      end
-
-      if space.togglProj or description then
-        toggl.startTimer(space.togglProj, description)
-      end
-    end
-
-    -- launch / close apps
-    if space.launch then
-      m.tagsToBundleid(space.launch, function(bundleID)
-        hs.application.launchOrFocusByBundleID(bundleID)
-      end)
-    end
-
-    if space.blacklist then
-      m.tagsToBundleid(space.blacklist, function(bundleID)
-        local app = hs.application.get(bundleID)
-        if app then app:kill() end
-      end)
-    end
-
-    if space.whitelist then
-      fn.map(m.config.applications, function(appConfig)
-        if not allowed(appConfig) then
-          local app = hs.application.get(appConfig.bundleID)
-          if app then
-            app:kill()
-          end
-        end
-      end)
-    end
-
-    -- run setup()
-    if hasFunc(space.funcs, 'setup') then
-      m.config.funcs[space.funcs].setup()
-    end
-
-    -- use layout
-    if space.layouts then
-      hs.window.layout.applyLayout(space.layouts)
-    end
-
-    if m.parsedQuery.duration then -- make this a timed session
-      m.timer =
-        hs.timer.doAfter(m.parsedQuery.duration * 60, function()
-          hs.sound.getByName("Blow"):play()
-          hs.alert(
-            "⏲: Time is up!",
-            moduleStyle
-          )
-          m.choose()
-          m.timer = nil
-        end)
-    end
-  end
-end
-
-m.filter = function(searchQuery)
-  local parsedQuery = m.parseQuery(searchQuery)
-
-  local query = m.lowerOrEmpty(parsedQuery.query)
-  m.parsedQuery = parsedQuery -- store this for later
-
-  local results = fn.filter(m.config.spaces, function(space)
-    local text = m.lowerOrEmpty(space.text)
-    local subText = m.lowerOrEmpty(space.subText)
-    return (string.match(text, query) or string.match(subText, query))
-  end)
-
-  table.insert(results, {
-    text = query,
-    subText = "Start a toggl timer with this description...",
-    image = hs.image.imageFromAppBundle('com.toggl.toggldesktop.TogglDesktop'),
-    togglDesc = parsedQuery.query
-  })
-
-  return results
+function m:setTogglKey(key)
+  toggl:setKey(key)
+  return self
 end
 
 m.choose = function()
@@ -337,6 +188,105 @@ m.choose = function()
     :show()
 end
 
+-- HELPERS =============
+
+-- Switching spaces
+
+m.setSpace = function(space)
+  hs.settings.set('headspace', {
+    text = space.text,
+    whitelist = space.whitelist,
+    blacklist = space.blacklist,
+    launch = space.launch,
+    funcs = space.funcs
+  })
+end
+
+m.hasFunc = function(key, func)
+  return m.config.funcs[key] and m.config.funcs[key][func]
+end
+
+m.switch = function(space)
+  if space ~= nil then
+
+    local previousSpace = hs.settings.get('headspace')
+    -- teardown the previous space
+    if previousSpace then
+      if m.hasFunc(previousSpace.funcs, 'teardown') then
+        m.config.funcs[previousSpace.funcs].teardown()
+      end
+    end
+
+    -- Store headspace in hs.settings
+    m.setSpace(space)
+
+    -- Start timer unless holding shift
+    if not hs.eventtap.checkKeyboardModifiers()['shift'] then
+
+      -- Get either the space's default description or one passed between
+      -- quotes.
+      local description = nil
+      if m.parsedQuery.description then
+        description = m.parsedQuery.description
+      else
+        description = space.togglDesc
+      end
+
+      if space.togglProj or description then
+        toggl.startTimer(space.togglProj, description)
+      end
+    end
+
+    -- launch / close apps
+    if space.launch then
+      m.tagsToBundleid(space.launch, function(bundleID)
+        hs.application.launchOrFocusByBundleID(bundleID)
+      end)
+    end
+
+    if space.blacklist then
+      m.tagsToBundleid(space.blacklist, function(bundleID)
+        local app = hs.application.get(bundleID)
+        if app then app:kill() end
+      end)
+    end
+
+    if space.whitelist then
+      fn.map(m.config.applications, function(appConfig)
+        if not m.allowed(appConfig) then
+          local app = hs.application.get(appConfig.bundleID)
+          if app then
+            app:kill()
+          end
+        end
+      end)
+    end
+
+    -- run setup()
+    if m.hasFunc(space.funcs, 'setup') then
+      m.config.funcs[space.funcs].setup()
+    end
+
+    -- use layout
+    if space.layouts then
+      hs.window.layout.applyLayout(space.layouts)
+    end
+
+    if m.parsedQuery.duration then -- make this a timed session
+      m.timer =
+        hs.timer.doAfter(m.parsedQuery.duration * 60, function()
+          hs.sound.getByName("Blow"):play()
+          hs.alert(
+            "⏲: Time is up!",
+            moduleStyle
+          )
+          m.choose()
+          m.timer = nil
+        end)
+    end
+  end
+end
+
 m.timerStr = function(runningTimer)
   local str = ""
 
@@ -375,12 +325,28 @@ m.timerStr = function(runningTimer)
   return str
 end
 
-m.lowerOrEmpty = function(str)
-  if str then
-    return string.lower(str)
-  else
-    return ""
-  end
+-- Query
+
+m.filter = function(searchQuery)
+  local parsedQuery = m.parseQuery(searchQuery)
+
+  local query = m.lowerOrEmpty(parsedQuery.query)
+  m.parsedQuery = parsedQuery -- store this for later
+
+  local results = fn.filter(m.config.spaces, function(space)
+    local text = m.lowerOrEmpty(space.text)
+    local subText = m.lowerOrEmpty(space.subText)
+    return (string.match(text, query) or string.match(subText, query))
+  end)
+
+  table.insert(results, {
+    text = query,
+    subText = "Start a toggl timer with this description...",
+    image = hs.image.imageFromAppBundle('com.toggl.toggldesktop.TogglDesktop'),
+    togglDesc = parsedQuery.query
+  })
+
+  return results
 end
 
 m.parseQuery = function(query)
@@ -401,6 +367,27 @@ m.parseQuery = function(query)
   }
 end
 
+m.lowerOrEmpty = function(str)
+  if str then
+    return string.lower(str)
+  else
+    return ""
+  end
+end
+
+-- Tags
+
+m.computeTagged = function(listOfApplications)
+  fn.map(listOfApplications, function(appConfig)
+    if appConfig.tags then
+      fn.map(appConfig.tags, function(tag)
+        if not m.tagged[tag] then m.tagged[tag] = {} end
+        table.insert(m.tagged[tag], appConfig.bundleID)
+      end)
+    end
+  end)
+end
+
 m.appsTaggedWith = function(tag)
   return m.tagged[tag]
 end
@@ -411,6 +398,30 @@ m.tagsToBundleid = function(listOfTags, func)
       func(appConfig)
     end)
   end)
+end
+
+m.allowed = function(appConfig)
+  if appConfig and appConfig.tags then
+    if appConfig.whitelisted then
+      return true
+    else
+      local space = hs.settings.get("headspace")
+      if space then
+        if space.whitelist then
+          return fn.some(space.whitelist, function(tag)
+            return fn.contains(m.tagged[tag], appConfig.bundleID)
+          end)
+        else
+          if space.blacklist then
+            return fn.every(space.blacklist, function(tag)
+              return not fn.contains(appConfig.tags, tag)
+            end)
+          end
+        end
+      end
+    end
+  end
+  return true
 end
 
 return m
