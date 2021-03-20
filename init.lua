@@ -68,7 +68,7 @@ local m = {
   name = "Headspace",
   version = "1.0",
   author = "Evan Travers <evantravers@gmail.com>",
-  license = "FIXME",
+  license = "MIT <https://opensource.org/licenses/MIT>",
   homepage = "https://github.com/evantravers/headspace.spoon",
   tagged = {}
 }
