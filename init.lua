@@ -1,68 +1,68 @@
--- HEADSPACE
---
--- You need in namespace a table at `config.spaces`.
--- `config.spaces` is a table that is passed to a chooser.
---
--- You can specify blocking of apps via a `whitelist`, `blacklist`, and you can
--- say what you want to have `launch` when you launch that space.
---
--- A space with a `blacklist` will allow anything _but_ apps tagged with the
--- blacklist tags, untagged apps, or apps with a whitelisted attribute.
---
--- A space with a `whitelist` will allow **only** the apps tagged with tags in
--- the whitelist, untagged apps, or apps with a whitelisted attribute.
---
--- There is presently an interaction between the two where if an app is
--- whitelisted by a tag and blacklisted by a tag, whitelist wins.
---
--- The `launch` list tells the space to auto launch certain things at startup.
---
--- Optionally, you can define a setup function at config.spaces.<key> that is
--- run when the space is started.
---
--- OPTIONS:
---
--- If you are using toggl timer, putting anything in quotes will pass that as a
--- custom description to toggl. e.g. Design "Working on jira ticket" will match
--- a space named Design, but pass a custom description to your timer.
---
--- If you want a pomodoro countdown, add a colon followed by integers. e.g. :45
--- will count down 45 minutes, then play a musical cue and prompt you to choose
--- a new space.
---
--- # Example:
---
--- config.spaces = {
---   text = "Example",
---   subText = "More about the example",
---   image = hs.image.imageFromAppBundle('foo.bar.com'),
-
---   funcs = "example",
-
---   launch = {"table", "of", "tags"},
---   blacklist = {"table", "of", "tags"},
---   == OR ==
---   whitelist = {"table", "of", "tags"}
-
---   togglProj = "id of toggl project",
---   togglDescr = "description of toggl timer
---
---   intentRequired = true
---   intentSuggestions = {}
--- }
---
--- config.funcs.example = {
---   setup = function()
---     hs.urlevent.openURL("http://hammerspoon.org")
---   end
--- }
---
--- The goal is to get into another space, even when working from home.
---
--- Future expansions...
--- DND status?
--- Custom Desktop Background with prompts for focus, writing, code?
--- Musical cues?
+--- === Headspace ===
+---
+--- You need in namespace a table at `config.spaces`.
+--- `config.spaces` is a table that is passed to a chooser.
+---
+--- You can specify blocking of apps via a `whitelist`, `blacklist`, and you can
+--- say what you want to have `launch` when you launch that space.
+---
+--- A space with a `blacklist` will allow anything _but_ apps tagged with the
+--- blacklist tags, untagged apps, or apps with a whitelisted attribute.
+---
+--- A space with a `whitelist` will allow **only** the apps tagged with tags in
+--- the whitelist, untagged apps, or apps with a whitelisted attribute.
+---
+--- There is presently an interaction between the two where if an app is
+--- whitelisted by a tag and blacklisted by a tag, whitelist wins.
+---
+--- The `launch` list tells the space to auto launch certain things at startup.
+---
+--- Optionally, you can define a setup function at config.spaces.<key> that is
+--- run when the space is started.
+---
+--- OPTIONS:
+---
+--- If you are using toggl timer, putting anything in quotes will pass that as a
+--- custom description to toggl. e.g. Design "Working on jira ticket" will match
+--- a space named Design, but pass a custom description to your timer.
+---
+--- If you want a pomodoro countdown, add a colon followed by integers. e.g. :45
+--- will count down 45 minutes, then play a musical cue and prompt you to choose
+--- a new space.
+---
+--- # Example:
+---
+--- config.spaces = {
+---   text = "Example",
+---   subText = "More about the example",
+---   image = hs.image.imageFromAppBundle('foo.bar.com'),
+---
+---   funcs = "example",
+---
+---   launch = {"table", "of", "tags"},
+---   blacklist = {"table", "of", "tags"},
+---   == OR ==
+---   whitelist = {"table", "of", "tags"}
+---
+---   togglProj = "id of toggl project",
+---   togglDescr = "description of toggl timer
+---
+---   intentRequired = true
+---   intentSuggestions = {}
+--- }
+---
+--- config.funcs.example = {
+---   setup = function()
+---     hs.urlevent.openURL("http://hammerspoon.org")
+---   end
+--- }
+---
+--- The goal is to get into another space, even when working from home.
+---
+--- Future expansions...
+--- DND status?
+--- Custom Desktop Background with prompts for focus, writing, code?
+--- Musical cues?
 
 local m = {
   name = "Headspace",
@@ -85,6 +85,13 @@ local moduleStyle = fn.copy(hs.alert.defaultStyle)
       moduleStyle.radius = 9
 
 -- API =================
+
+--- Headspace:start() -> table
+--- Method
+--- Starts the application watcher that "blocks" applications.
+---
+--- Returns:
+---  * self
 function m:start()
   m.watcher = hs.application.watcher.new(function(appName, event, hsapp)
     if event == hs.application.watcher.launched then
@@ -104,6 +111,12 @@ function m:start()
   return self
 end
 
+--- Headspace:stop() -> table
+--- Method
+--- Kills the application watcher and any running timers.
+---
+--- Returns:
+---  * self
 function m:stop()
   -- kill any watchers
   m.watcher = nil
@@ -122,22 +135,46 @@ function m:bindHotKeys(mapping)
   return self
 end
 
--- FIXME: Do error checking when loaded? (should be applications, etc.)
+--- Headspace:loadConfig(configTable) -> table
+--- Method
+--- Adds a device to USBObserver's watch list
+---
+--- Parameters:
+---  * configTable - A table containing the spaces and applications.-
+---
+--- Returns:
+---  * self
 function m:loadConfig(configTable)
+  -- FIXME: Do error checking when loaded? (should be applications, etc.)
   m.config = configTable
   m.computeTagged(m.config.applications)
   return self
 end
 
+--- Headspace:setTogglKey(key) -> table
+--- Method
+--- Sets the toggl API key.
+---
+--- Parameters:
+---  * key - Your toggl API key as a string.
+---
+--- Returns:
+---  * self
 function m:setTogglKey(key)
   toggl:setKey(key)
   return self
 end
 
+--- Headspace.stopToggl() -> nil
+--- Method
+--- Stops any running toggl timers
 m.stopToggl = function()
   toggl.stopTimer()
 end
 
+--- Headspace.choose() -> nil
+--- Method
+--- Launch an hs.chooser to select a new headspace.
 m.choose = function()
   local chooser = hs.chooser.new(function(space)
     if space and space.intentRequired and not m.parsedQuery.description then
