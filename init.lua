@@ -66,7 +66,7 @@
 
 local m = {
   name = "Headspace",
-  version = "1.0",
+  version = "1.1",
   author = "Evan Travers <evantravers@gmail.com>",
   license = "MIT <https://opensource.org/licenses/MIT>",
   homepage = "https://github.com/evantravers/headspace.spoon",
@@ -310,7 +310,7 @@ m.switch = function(space)
 
     -- use layout
     if space.layouts then
-      hs.window.layout.applyLayout(space.layouts)
+      hs.layout.apply(space.layouts, string.match)
     end
 
     if m.parsedQuery.duration then -- make this a timed session
