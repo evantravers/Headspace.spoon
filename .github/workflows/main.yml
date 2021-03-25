@@ -32,8 +32,8 @@ jobs:
         with:
         # Filename for archive
           filename: Headspace.zip
-        - name: Upload Release
-          uses: ncipollo/release-action@v1
-          with:
-          artifacts: "Headspace.zip"
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Release
+        uses: ncipollo/release-action@v1
+        with:
+        artifacts: "Headspace.zip"
+        token: ${{ secrets.GITHUB_TOKEN }}
