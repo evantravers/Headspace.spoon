@@ -35,5 +35,5 @@ jobs:
       - name: Upload Release
         uses: ncipollo/release-action@v1
         with:
-        artifacts: "Headspace.zip"
-        token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "Headspace.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
