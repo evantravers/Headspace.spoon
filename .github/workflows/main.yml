@@ -38,3 +38,4 @@ jobs:
         with:
           artifacts: "Headspace.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
