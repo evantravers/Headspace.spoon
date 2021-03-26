@@ -29,12 +29,12 @@ jobs:
         # You may pin to the exact commit or the version.
         # uses: TheDoctor0/zip-release@a1afcab9c664c9976ac398fa831eac67bed1eb0e
         uses: TheDoctor0/zip-release@0.4.1
-        exclusions: '*.git*'
         with:
         # Filename for archive
+          exclusions: '*.git*'
           filename: Headspace.zip
       - name: Upload Release
         uses: ncipollo/release-action@v1
         with:
-        artifacts: "Headspace.zip"
-        token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "Headspace.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
