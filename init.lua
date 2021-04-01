@@ -198,7 +198,6 @@ m.choose = function()
       :choices(intentSuggestions)
       :queryChangedCallback(function(query)
         local choices = fn.filter(intentSuggestions, function(choice)
-          hs.inspect(choice)
           return string.match(choice.text, query)
         end)
 
