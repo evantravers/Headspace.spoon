@@ -18,7 +18,7 @@ end
 m.startTimer = function(projectId, description)
   local key = m.key()
   hs.http.asyncPost(
-    "https://www.toggl.com/api/v8/time_entries/start",
+    "https://api.track.toggl.com/api/v8/time_entries/start",
     hs.json.encode(
       {
         ['time_entry'] = {
@@ -42,7 +42,7 @@ end
 m.currentTimer = function(callback)
   local key = m.key()
   hs.http.asyncGet(
-    "https://www.toggl.com/api/v8/time_entries/current",
+    "https://api.track.toggl.com/api/v8/time_entries/current",
     {
       ["Content-Type"] = "application/json; charset=UTF-8",
       ["Authorization"] = "Basic " .. hs.base64.encode(key .. ":api_token")
@@ -66,7 +66,7 @@ end
 m.getProject = function(pid)
   local key = m.key()
   httpNumber, body, headers = hs.http.get(
-    "https://www.toggl.com/api/v8/projects/" .. pid,
+    "https://api.track.toggl.com/api/v8/projects/" .. pid,
     {
       ["Content-Type"] = "application/json; charset=UTF-8",
       ["Authorization"] = "Basic " .. hs.base64.encode(key .. ":api_token")
@@ -85,7 +85,7 @@ m.stopTimer = function()
   m.currentTimer(function(current)
     local key = m.key()
     httpNumber, body, headers = hs.http.doRequest(
-      "https://www.toggl.com/api/v8/time_entries/" .. current['data']['id'] .. "/stop",
+      "https://api.track.toggl.com/api/v8/time_entries/" .. current['data']['id'] .. "/stop",
       "PUT",
       nil,
       {
