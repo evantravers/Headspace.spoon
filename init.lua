@@ -45,7 +45,7 @@
 ---   whitelist = {"table", "of", "tags"}
 ---
 ---   togglProj = "id of toggl project",
----   togglDescr = "description of toggl timer
+---   togglDesc = "description of toggl timer
 ---
 ---   intentRequired = true
 ---   intentSuggestions = {}

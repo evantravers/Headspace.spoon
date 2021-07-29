@@ -23,7 +23,7 @@
     "Constructor" : [
 
     ],
-    "doc" : "You need in namespace a table at `config.spaces`.\n`config.spaces` is a table that is passed to a chooser.\n\nYou can specify blocking of apps via a `whitelist`, `blacklist`, and you can\nsay what you want to have `launch` when you launch that space.\n\nA space with a `blacklist` will allow anything _but_ apps tagged with the\nblacklist tags, untagged apps, or apps with a whitelisted attribute.\n\nA space with a `whitelist` will allow **only** the apps tagged with tags in\nthe whitelist, untagged apps, or apps with a whitelisted attribute.\n\nThere is presently an interaction between the two where if an app is\nwhitelisted by a tag and blacklisted by a tag, whitelist wins.\n\nThe `launch` list tells the space to auto launch certain things at startup.\n\nOptionally, you can define a setup function at config.spaces.<key> that is\nrun when the space is started.\n\nOPTIONS:\n\nIf you are using toggl timer, putting anything in quotes will pass that as a\ncustom description to toggl. e.g. Design \"Working on jira ticket\" will match\na space named Design, but pass a custom description to your timer.\n\nIf you want a pomodoro countdown, add a colon followed by integers. e.g. :45\nwill count down 45 minutes, then play a musical cue and prompt you to choose\na new space.\n\n# Example:\n\nconfig.spaces = {\n  text = \"Example\",\n  subText = \"More about the example\",\n  image = hs.image.imageFromAppBundle('foo.bar.com'),\n\n  funcs = \"example\",\n\n  launch = {\"table\", \"of\", \"tags\"},\n  blacklist = {\"table\", \"of\", \"tags\"},\n  == OR ==\n  whitelist = {\"table\", \"of\", \"tags\"}\n\n  togglProj = \"id of toggl project\",\n  togglDescr = \"description of toggl timer\n\n  intentRequired = true\n  intentSuggestions = {}\n}\n\nconfig.funcs.example = {\n  setup = function()\n    hs.urlevent.openURL(\"http:\/\/hammerspoon.org\")\n  end\n}\n\nThe goal is to get into another space, even when working from home.\n\nFuture expansions...\nDND status?\nCustom Desktop Background with prompts for focus, writing, code?\nMusical cues?",
+    "doc" : "You need in namespace a table at `config.spaces`.\n`config.spaces` is a table that is passed to a chooser.\n\nYou can specify blocking of apps via a `whitelist`, `blacklist`, and you can\nsay what you want to have `launch` when you launch that space.\n\nA space with a `blacklist` will allow anything _but_ apps tagged with the\nblacklist tags, untagged apps, or apps with a whitelisted attribute.\n\nA space with a `whitelist` will allow **only** the apps tagged with tags in\nthe whitelist, untagged apps, or apps with a whitelisted attribute.\n\nThere is presently an interaction between the two where if an app is\nwhitelisted by a tag and blacklisted by a tag, whitelist wins.\n\nThe `launch` list tells the space to auto launch certain things at startup.\n\nOptionally, you can define a setup function at config.spaces.<key> that is\nrun when the space is started.\n\nOPTIONS:\n\nIf you are using toggl timer, putting anything in quotes will pass that as a\ncustom description to toggl. e.g. Design \"Working on jira ticket\" will match\na space named Design, but pass a custom description to your timer.\n\nIf you want a pomodoro countdown, add a colon followed by integers. e.g. :45\nwill count down 45 minutes, then play a musical cue and prompt you to choose\na new space.\n\n# Example:\n\nconfig.spaces = {\n  text = \"Example\",\n  subText = \"More about the example\",\n  image = hs.image.imageFromAppBundle('foo.bar.com'),\n\n  funcs = \"example\",\n\n  launch = {\"table\", \"of\", \"tags\"},\n  blacklist = {\"table\", \"of\", \"tags\"},\n  == OR ==\n  whitelist = {\"table\", \"of\", \"tags\"}\n\n  togglProj = \"id of toggl project\",\n  togglDesc = \"description of toggl timer\n\n  intentRequired = true\n  intentSuggestions = {}\n}\n\nconfig.funcs.example = {\n  setup = function()\n    hs.urlevent.openURL(\"http:\/\/hammerspoon.org\")\n  end\n}\n\nThe goal is to get into another space, even when working from home.\n\nFuture expansions...\nDND status?\nCustom Desktop Background with prompts for focus, writing, code?\nMusical cues?",
     "Method" : [
       {
         "doc" : "Starts the application watcher that \"blocks\" applications.\n\nReturns:\n * self",
@@ -31,10 +31,8 @@
           "Starts the application watcher that \"blocks\" applications.",
           ""
         ],
-        "parameters" : [
-
-        ],
         "def" : "Headspace:start() -> table",
+        "name" : "start",
         "notes" : [
 
         ],
@@ -44,7 +42,9 @@
           " * self"
         ],
         "desc" : "Starts the application watcher that \"blocks\" applications.",
-        "name" : "start"
+        "parameters" : [
+
+        ]
       },
       {
         "doc" : "Kills the application watcher and any running timers.\n\nReturns:\n * self",
@@ -52,10 +52,8 @@
           "Kills the application watcher and any running timers.",
           ""
         ],
-        "parameters" : [
-
-        ],
         "def" : "Headspace:stop() -> table",
+        "name" : "stop",
         "notes" : [
 
         ],
@@ -65,7 +63,9 @@
           " * self"
         ],
         "desc" : "Kills the application watcher and any running timers.",
-        "name" : "stop"
+        "parameters" : [
+
+        ]
       },
       {
         "doc" : "Adds a device to USBObserver's watch list\n\nParameters:\n * configTable - A table containing the spaces and applications.-\n\nReturns:\n * self",
@@ -73,11 +73,8 @@
           "Adds a device to USBObserver's watch list",
           ""
         ],
-        "parameters" : [
-          " * configTable - A table containing the spaces and applications.-",
-          ""
-        ],
         "def" : "Headspace:loadConfig(configTable) -> table",
+        "name" : "loadConfig",
         "notes" : [
 
         ],
@@ -87,7 +84,10 @@
           " * self"
         ],
         "desc" : "Adds a device to USBObserver's watch list",
-        "name" : "loadConfig"
+        "parameters" : [
+          " * configTable - A table containing the spaces and applications.-",
+          ""
+        ]
       },
       {
         "doc" : "Sets the toggl API key.\n\nParameters:\n * key - Your toggl API key as a string.\n\nReturns:\n * self",
@@ -95,11 +95,8 @@
           "Sets the toggl API key.",
           ""
         ],
-        "parameters" : [
-          " * key - Your toggl API key as a string.",
-          ""
-        ],
         "def" : "Headspace:setTogglKey(key) -> table",
+        "name" : "setTogglKey",
         "notes" : [
 
         ],
@@ -109,17 +106,18 @@
           " * self"
         ],
         "desc" : "Sets the toggl API key.",
-        "name" : "setTogglKey"
+        "parameters" : [
+          " * key - Your toggl API key as a string.",
+          ""
+        ]
       },
       {
         "doc" : "Stops any running toggl timers",
         "stripped_doc" : [
           "Stops any running toggl timers"
         ],
-        "parameters" : [
-
-        ],
         "def" : "Headspace.stopToggl() -> nil",
+        "name" : "stopToggl",
         "notes" : [
 
         ],
@@ -129,17 +127,17 @@
 
         ],
         "desc" : "Stops any running toggl timers",
-        "name" : "stopToggl"
+        "parameters" : [
+
+        ]
       },
       {
         "doc" : "Launch an hs.chooser to select a new headspace.",
         "stripped_doc" : [
           "Launch an hs.chooser to select a new headspace."
         ],
-        "parameters" : [
-
-        ],
         "def" : "Headspace.choose() -> nil",
+        "name" : "choose",
         "notes" : [
 
         ],
@@ -149,7 +147,9 @@
 
         ],
         "desc" : "Launch an hs.chooser to select a new headspace.",
-        "name" : "choose"
+        "parameters" : [
+
+        ]
       }
     ],
     "Command" : [
@@ -164,10 +164,8 @@
         "stripped_doc" : [
           "Launch an hs.chooser to select a new headspace."
         ],
-        "parameters" : [
-
-        ],
         "def" : "Headspace.choose() -> nil",
+        "name" : "choose",
         "notes" : [
 
         ],
@@ -177,7 +175,9 @@
 
         ],
         "desc" : "Launch an hs.chooser to select a new headspace.",
-        "name" : "choose"
+        "parameters" : [
+
+        ]
       },
       {
         "doc" : "Adds a device to USBObserver's watch list\n\nParameters:\n * configTable - A table containing the spaces and applications.-\n\nReturns:\n * self",
@@ -185,11 +185,8 @@
           "Adds a device to USBObserver's watch list",
           ""
         ],
-        "parameters" : [
-          " * configTable - A table containing the spaces and applications.-",
-          ""
-        ],
         "def" : "Headspace:loadConfig(configTable) -> table",
+        "name" : "loadConfig",
         "notes" : [
 
         ],
@@ -199,7 +196,10 @@
           " * self"
         ],
         "desc" : "Adds a device to USBObserver's watch list",
-        "name" : "loadConfig"
+        "parameters" : [
+          " * configTable - A table containing the spaces and applications.-",
+          ""
+        ]
       },
       {
         "doc" : "Sets the toggl API key.\n\nParameters:\n * key - Your toggl API key as a string.\n\nReturns:\n * self",
@@ -207,11 +207,8 @@
           "Sets the toggl API key.",
           ""
         ],
-        "parameters" : [
-          " * key - Your toggl API key as a string.",
-          ""
-        ],
         "def" : "Headspace:setTogglKey(key) -> table",
+        "name" : "setTogglKey",
         "notes" : [
 
         ],
@@ -221,7 +218,10 @@
           " * self"
         ],
         "desc" : "Sets the toggl API key.",
-        "name" : "setTogglKey"
+        "parameters" : [
+          " * key - Your toggl API key as a string.",
+          ""
+        ]
       },
       {
         "doc" : "Starts the application watcher that \"blocks\" applications.\n\nReturns:\n * self",
@@ -229,10 +229,8 @@
           "Starts the application watcher that \"blocks\" applications.",
           ""
         ],
-        "parameters" : [
-
-        ],
         "def" : "Headspace:start() -> table",
+        "name" : "start",
         "notes" : [
 
         ],
@@ -242,7 +240,9 @@
           " * self"
         ],
         "desc" : "Starts the application watcher that \"blocks\" applications.",
-        "name" : "start"
+        "parameters" : [
+
+        ]
       },
       {
         "doc" : "Kills the application watcher and any running timers.\n\nReturns:\n * self",
@@ -250,10 +250,8 @@
           "Kills the application watcher and any running timers.",
           ""
         ],
-        "parameters" : [
-
-        ],
         "def" : "Headspace:stop() -> table",
+        "name" : "stop",
         "notes" : [
 
         ],
@@ -263,17 +261,17 @@
           " * self"
         ],
         "desc" : "Kills the application watcher and any running timers.",
-        "name" : "stop"
+        "parameters" : [
+
+        ]
       },
       {
         "doc" : "Stops any running toggl timers",
         "stripped_doc" : [
           "Stops any running toggl timers"
         ],
-        "parameters" : [
-
-        ],
         "def" : "Headspace.stopToggl() -> nil",
+        "name" : "stopToggl",
         "notes" : [
 
         ],
@@ -283,7 +281,9 @@
 
         ],
         "desc" : "Stops any running toggl timers",
-        "name" : "stopToggl"
+        "parameters" : [
+
+        ]
       }
     ],
     "name" : "Headspace"
