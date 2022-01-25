@@ -255,6 +255,10 @@ m.switch = function(space)
       if m.hasFunc(previousSpace.funcs, 'teardown') then
         m.config.funcs[previousSpace.funcs].teardown()
       end
+
+      if previousSpace.layouts then
+        spoon.AutoLayout:pop()
+      end
     end
 
     -- Store headspace in hs.settings
@@ -309,7 +313,8 @@ m.switch = function(space)
 
     -- use layout
     if space.layouts then
-      hs.layout.apply(space.layouts, string.match)
+      spoon.AutoLayout:push(space.layouts)
+      spoon.AutoLayout:autoLayout()
     end
 
     if m.parsedQuery.duration then -- make this a timed session

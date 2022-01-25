@@ -6,6 +6,7 @@ from keeping open distracting appliacations when I should be working.
 Requires:
 - A toggl API token.
   ([instructions](https://support.toggl.com/en/articles/3116844-where-is-my-api-token-located))
+- [AutoLayout.spoon](https://github.com/evantravers/AutoLayout.spoon)
 - A configuration table of spaces and applications. You can find mine
   [here](https://github.com/evantravers/hammerspoon-config/blob/master/init.lua).
 
