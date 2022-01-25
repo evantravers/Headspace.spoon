@@ -355,7 +355,7 @@ m.timerStr = function(runningTimer)
 
     local duration = ""
     if m.timer then
-      duration = "-" .. math.ceil(m.timer:nextTrigger() / 60) .. "m"
+      duration = "" .. math.ceil(m.timer:nextTrigger() / 60) .. "m remaining"
     else
       duration = math.floor((hs.timer.secondsSinceEpoch() + runningTimer.data.duration) / 60) .. "m"
     end
