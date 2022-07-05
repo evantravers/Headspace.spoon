@@ -24,7 +24,7 @@ local config = {
       subText = "Talk to people.",
       blacklist = {'focus'}
     }
-  }
+  },
   applications = {
     ['com.apple.mail'] = {
       bundleID = 'com.apple.mail',
