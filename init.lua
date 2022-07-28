@@ -233,13 +233,13 @@ end
 -- Switching spaces
 
 m.setSpace = function(space)
-  hs.settings.set('headspace', {
-    text = space.text,
-    whitelist = space.whitelist,
-    blacklist = space.blacklist,
-    launch = space.launch,
-    funcs = space.funcs
-  })
+  hs.settings.set('headspace', space.text)
+end
+
+m.getSpace = function()
+  return hs.fnutils.find(m.config.spaces, function(space)
+    return hs.settings.get('headspace') == space.text
+  end)
 end
 
 m.hasFunc = function(key, func)
@@ -249,7 +249,7 @@ end
 m.switch = function(space)
   if space ~= nil then
 
-    local previousSpace = hs.settings.get('headspace')
+    local previousSpace = m.getSpace()
     -- teardown the previous space
     if previousSpace then
       if m.hasFunc(previousSpace.funcs, 'teardown') then
