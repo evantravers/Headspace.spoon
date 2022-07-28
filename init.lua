@@ -253,7 +253,7 @@ m.switch = function(space)
     -- teardown the previous space
     if previousSpace then
       if m.hasFunc(previousSpace.funcs, 'teardown') then
-        m.config.funcs[previousSpace.funcs].teardown()
+        pcall(m.config.funcs[previousSpace.funcs].teardown)
       end
 
       if previousSpace.layouts then
@@ -308,7 +308,7 @@ m.switch = function(space)
 
     -- run setup()
     if m.hasFunc(space.funcs, 'setup') then
-      m.config.funcs[space.funcs].setup()
+      pcall(m.config.funcs[space.funcs].setup)
     end
 
     -- use layout
