@@ -262,7 +262,6 @@ m.switch = function(space)
       end
     end
 
-    -- Store headspace in hs.settings
     m.setSpace(space)
 
     -- Start timer unless holding shift
@@ -336,7 +335,7 @@ end
 m.timerStr = function(runningTimer)
   local str = ""
 
-  local space = hs.settings.get("headspace")
+  local space = m.getSpace()
 
   if runningTimer and runningTimer.data then
     local timer = runningTimer.data
