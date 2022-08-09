@@ -96,11 +96,12 @@ function m:start()
   m.watcher = hs.application.watcher.new(function(appName, event, hsapp)
     if event == hs.application.watcher.launched then
       local appConfig = m.config.applications[hsapp:bundleID()]
+      local space = m.getSpace()
 
       if not m.allowed(appConfig) then
         hs.alert(
           "🛑: " .. hsapp:name() .. "\n" ..
-          "📂: " .. hs.settings.get("headspace").text,
+          "📂: " .. space.text,
           moduleStyle
         )
         hsapp:kill()
@@ -450,18 +451,16 @@ m.allowed = function(appConfig)
     if appConfig.whitelisted then
       return true
     else
-      local space = hs.settings.get("headspace")
-      if space then
-        if space.whitelist then
-          return fn.some(space.whitelist, function(tag)
-            return fn.contains(m.tagged[tag], appConfig.bundleID)
+      local space = m.getSpace()
+      if space.whitelist then
+        return fn.some(space.whitelist, function(tag)
+          return fn.contains(m.tagged[tag], appConfig.bundleID)
+        end)
+      else
+        if space.blacklist then
+          return fn.every(space.blacklist, function(tag)
+            return not fn.contains(appConfig.tags, tag)
           end)
-        else
-          if space.blacklist then
-            return fn.every(space.blacklist, function(tag)
-              return not fn.contains(appConfig.tags, tag)
-            end)
-          end
         end
       end
     end
