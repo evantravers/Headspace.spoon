@@ -387,7 +387,7 @@ m.filter = function(searchQuery)
   table.insert(results, {
     text = query,
     subText = "Start a toggl timer with this description...",
-    image = hs.image.imageFromAppBundle('com.toggl.toggldesktop.TogglDesktop'),
+    image = hs.image.imageFromAppBundle('com.toggl.daneel'),
     togglDesc = parsedQuery.query
   })
 
