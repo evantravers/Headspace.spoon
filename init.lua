@@ -83,6 +83,7 @@ local moduleStyle = fn.copy(hs.alert.defaultStyle)
       moduleStyle.strokeColor = { white = 1, alpha = 0 }
       moduleStyle.textSize = 36
       moduleStyle.radius = 9
+      moduleStyle.padding = 36
 
 -- API =================
 
