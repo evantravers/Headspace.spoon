@@ -132,7 +132,7 @@ function m.setWhitelist(_eventName, params)
 end
 
 function m.stopHeadspace(_eventName, _params)
-  return m:stop()
+  hs.settings.clear("headspace")
 end
 
 return m
