@@ -22,14 +22,6 @@
 ---
 --- OPTIONS:
 ---
---- If you are using toggl timer, putting anything in quotes will pass that as a
---- custom description to toggl. e.g. Design "Working on jira ticket" will match
---- a space named Design, but pass a custom description to your timer.
----
---- If you want a pomodoro countdown, add a colon followed by integers. e.g. :45
---- will count down 45 minutes, then play a musical cue and prompt you to choose
---- a new space.
----
 --- # Example:
 ---
 --- config.spaces = {
@@ -43,9 +35,6 @@
 ---   blacklist = {"table", "of", "tags"},
 ---   == OR ==
 ---   whitelist = {"table", "of", "tags"}
----
----   togglProj = "id of toggl project",
----   togglDesc = "description of toggl timer
 ---
 ---   intentRequired = true
 ---   intentSuggestions = {}
@@ -76,7 +65,6 @@ local m = {
 -- CONFIG ==============
 
 local fn    = require('hs.fnutils')
-local toggl = dofile(hs.spoons.resourcePath('toggl.lua'))
 
 local moduleStyle = fn.copy(hs.alert.defaultStyle)
       moduleStyle.atScreenEdge = 1
@@ -108,6 +96,8 @@ function m:start()
         hsapp:kill()
       end
     end
+    hs.urlevent.bind("switchSpace", m.switchSpace)
+    hs.urlevent.bind("stopSpace", m.stopSpace)
   end):start()
 
   return self
@@ -125,15 +115,8 @@ function m:stop()
   -- kill any timers
   m.timer = nil
 
-  return self
-end
-
-function m:bindHotKeys(mapping)
-  local spec = {
-    choose = hs.fnutils.partial(self.choose, self)
-  }
-  hs.spoons.bindHotkeysToSpec(spec, mapping)
-
+  hs.urlevent.bind("switchSpace", nil) -- remove callback
+  hs.urlevent.bind("stopSpace", nil) -- remove callback
   return self
 end
 
@@ -151,83 +134,6 @@ function m:loadConfig(configTable)
   m.config = configTable
   m.computeTagged(m.config.applications)
   return self
-end
-
---- Headspace:setTogglKey(key) -> table
---- Method
---- Sets the toggl API key.
----
---- Parameters:
----  * key - Your toggl API key as a string.
----
---- Returns:
----  * self
-function m:setTogglKey(key)
-  toggl:setKey(key)
-  return self
-end
-
---- Headspace.stopToggl() -> nil
---- Method
---- Stops any running toggl timers
-m.stopToggl = function()
-  toggl.stopTimer()
-end
-
---- Headspace.choose() -> nil
---- Method
---- Launch an hs.chooser to select a new headspace.
-m.choose = function()
-  local chooser = hs.chooser.new(function(space)
-    if space and space.intentRequired and not m.parsedQuery.description then
-      local intention = hs.chooser.new(function(descr)
-        m.parsedQuery.description = descr.text
-        m.switch(space)
-      end)
-
-      local intentSuggestions = {}
-      if space.intentSuggestions then
-        intentSuggestions = space.intentSuggestions
-      end
-
-      local focused = hs.window.frontmostWindow()
-      table.insert(intentSuggestions, 1, {
-        text = focused:title():gsub(' . ' .. focused:application():name() , '')
-      })
-
-      intention
-      :placeholderText("What do you intend?")
-      :choices(intentSuggestions)
-      :queryChangedCallback(function(query)
-        local choices = fn.filter(intentSuggestions, function(choice)
-          return string.match(choice.text, query)
-        end)
-
-        table.insert(choices, {
-          text = query,
-          togglDesc = query
-        })
-
-        intention:choices(choices)
-      end)
-      :show()
-    else
-      m.switch(space)
-    end
-  end)
-
-  chooser
-    :placeholderText("Select a headspace…")
-    :choices(m.config.spaces)
-    :queryChangedCallback(function(query)
-      chooser:choices(m.filter(query))
-    end)
-    :showCallback(function()
-      toggl.currentTimer(function(timer)
-        chooser:placeholderText(m.timerStr(timer))
-      end)
-    end)
-    :show()
 end
 
 -- HELPERS =============
@@ -248,39 +154,21 @@ m.hasFunc = function(key, func)
   return m.config.funcs[key] and m.config.funcs[key][func]
 end
 
+m.switchSpace = function(_eventName, params)
+  local space = hs.fnutils.find(m.config.spaces, function(s)
+    return s.text:find(params["name"])
+  end)
+  m.switch(space)
+end
+
+m.stopSpace = function(_eventName, _params)
+  hs.settings.clear('headspace')
+  return nil
+end
+
 m.switch = function(space)
   if space ~= nil then
-
-    local previousSpace = m.getSpace()
-    -- teardown the previous space
-    if previousSpace then
-      if m.hasFunc(previousSpace.funcs, 'teardown') then
-        pcall(m.config.funcs[previousSpace.funcs].teardown)
-      end
-
-      if previousSpace.layouts then
-        spoon.AutoLayout:pop()
-      end
-    end
-
     m.setSpace(space)
-
-    -- Start timer unless holding shift
-    if not hs.eventtap.checkKeyboardModifiers()['shift'] then
-
-      -- Get either the space's default description or one passed between
-      -- quotes.
-      local description = nil
-      if m.parsedQuery.description then
-        description = m.parsedQuery.description
-      else
-        description = space.togglDesc
-      end
-
-      if space.togglProj or description then
-        toggl.startTimer(space.togglProj, description)
-      end
-    end
 
     -- launch / close apps
     if space.launch then
@@ -306,122 +194,8 @@ m.switch = function(space)
         end
       end)
     end
-
-    -- run setup()
-    if m.hasFunc(space.funcs, 'setup') then
-      pcall(m.config.funcs[space.funcs].setup)
-    end
-
-    -- use layout
-    if space.layouts then
-      spoon.AutoLayout:push(space.layouts)
-      spoon.AutoLayout:autoLayout()
-    end
-
-    if m.parsedQuery.duration then -- make this a timed session
-      m.timer =
-        hs.timer.doAfter(m.parsedQuery.duration * 60, function()
-          hs.sound.getByName("Blow"):play()
-          hs.alert(
-            "⏲: Time is up!",
-            moduleStyle
-          )
-          m.choose()
-          m.timer = nil
-        end)
-    end
   end
 end
-
-m.timerStr = function(runningTimer)
-  local str = ""
-
-  local space = m.getSpace()
-
-  if runningTimer and runningTimer.data then
-    local timer = runningTimer.data
-
-    local descr = ""
-    if timer.description then
-      descr = '"' .. timer.description .. '" '
-    end
-
-    local proj = ""
-    if timer.pid then
-      local project = toggl.getProject(timer.pid)
-      if project and project.data then
-        proj = project.data.name .. " "
-      end
-    end
-
-    local duration = ""
-    if m.timer then
-      duration = "" .. math.ceil(m.timer:nextTrigger() / 60) .. "m remaining"
-    else
-      duration = math.floor((hs.timer.secondsSinceEpoch() + runningTimer.data.duration) / 60) .. "m"
-    end
-
-    str = proj .. descr .. "(" .. duration .. ")"
-  else
-    if space then
-      str = "📂: " .. space.text .. " "
-    end
-  end
-
-  return str
-end
-
--- Query
-
-m.filter = function(searchQuery)
-  local parsedQuery = m.parseQuery(searchQuery)
-
-  local query = m.lowerOrEmpty(parsedQuery.query)
-  m.parsedQuery = parsedQuery -- store this for later
-
-  local results = fn.filter(m.config.spaces, function(space)
-    local text = m.lowerOrEmpty(space.text)
-    local subText = m.lowerOrEmpty(space.subText)
-    return (string.match(text, query) or string.match(subText, query))
-  end)
-
-  table.insert(results, {
-    text = query,
-    subText = "Start a toggl timer with this description...",
-    image = hs.image.imageFromAppBundle('com.toggl.daneel'),
-    togglDesc = parsedQuery.query
-  })
-
-  return results
-end
-
-m.parseQuery = function(query)
-  -- extract out description: any "string" or 'string'
-  local descriptionPattern = "[\'\"](.+)[\'\"]"
-  local description = string.match(query, descriptionPattern)
-  -- extract out duration: a colon followed by number of minutes (:45)
-  local durationPattern    = ":(%d+)"
-  local duration    = string.match(query, durationPattern)
-
-  return {
-    description = description,
-    duration = tonumber(duration),
-    query = query
-            :gsub(descriptionPattern, "")
-            :gsub(durationPattern, "")
-            :gsub("^%s*(.-)%s*$", "%1") -- trim
-  }
-end
-
-m.lowerOrEmpty = function(str)
-  if str then
-    return string.lower(str)
-  else
-    return ""
-  end
-end
-
--- Tags
 
 m.computeTagged = function(listOfApplications)
   fn.map(listOfApplications, function(appConfig)
