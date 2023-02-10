@@ -69,15 +69,12 @@ end
 
 --- Headspace:stop() -> table
 --- Method
---- Kills the application watcher and any running timers.
 ---
 --- Returns:
 ---  * self
 function m:stop()
   -- kill any watchers
   m.watcher = nil
-  -- kill any timers
-  m.timer = nil
 
   -- clear residual spaces
   hs.settings.clear("headspace")
@@ -90,45 +87,85 @@ function m:stop()
 end
 
 m.getWhitelist = function()
-  return hs.settings.get("headspace")["whitelist"]
+  if hs.settings.get("headspace") then
+    return hs.settings.get("headspace")["whitelist"]
+  end
 end
 
 m.getBlacklist = function()
-  return hs.settings.get("headspace")["blacklist"]
+  if hs.settings.get("headspace") then
+    return hs.settings.get("headspace")["blacklist"]
+  end
 end
 
 m.allowed = function(app)
   local tags = hs.fs.tagsGet(app:path())
+  local name = app:name()
 
-  if not tags then return true end
-
-  if fn.contains(tags, "whitelisted") then
+  if tags and fn.contains(tags, "whitelisted") then
     return true
   end
 
   if m.getWhitelist() then
-    return fn.some(m.getWhitelist(), function(tag)
-      return fn.contains(tags, tag)
-    end)
-  else
-    if m.getBlacklist() then
-      return fn.every(m.getBlacklist(), function(tag)
-        return not fn.contains(tags, tag)
+    local appAllowed  = false
+    local tagAllowed = false
+
+    if m.getWhitelist().apps then
+      appAllowed = fn.contains(m.getWhitelist().apps, name)
+    end
+    if m.getWhitelist().tags and tags then
+      tagAllowed = fn.some(m.getWhitelist().tags, function(tag)
+        return fn.contains(tags, tag)
       end)
     end
+
+    return tagAllowed or appAllowed
+  end
+
+  if m.getBlacklist() then
+    local appBlocked = true
+    local tagBlocked = true
+
+    if m.getBlacklist().apps then
+      appBlocked = fn.contains(m.getBlacklist().apps, name)
+    end
+
+    if m.getBlacklist().tags and tags then
+      tagBlocked = fn.some(m.getBlacklist().tags, function(tag)
+        return fn.contains(tags, tag)
+      end)
+    end
+
+    return (not appBlocked) and (not tagBlocked)
   end
 
   return true
 end
 
 function m.setBlacklist(_eventName, params)
-  local l = fn.split(params["tags"], ",")
-  hs.settings.set("headspace", { ["blacklist"] = l })
+  local list = {}
+
+  if params["tags"] then
+    list["tags"] = fn.split(params["tags"], ",")
+  end
+  if params["apps"] then
+    list["apps"] = fn.split(params["apps"], ",")
+  end
+
+  hs.settings.set("headspace", { ["blacklist"] = list })
 end
 
 function m.setWhitelist(_eventName, params)
-  local l = fn.split(params["tags"])
-  hs.settings.set("headspace", { ["whitelist"] = l })
+  local list = {}
+
+  if params["tags"] then
+    list["tags"] = fn.split(params["tags"], ",")
+  end
+  if params["apps"] then
+    list["apps"] = fn.split(params["apps"], ",")
+  end
+
+  hs.settings.set("headspace", { ["whitelist"] = list })
 end
 
 function m.stopHeadspace(_eventName, _params)
