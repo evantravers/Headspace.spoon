@@ -60,8 +60,9 @@ function m:start()
     end
   end):start()
 
-  hs.urlevent.bind("blacklist", m.setBlacklist)
-  hs.urlevent.bind("whitelist", m.setWhitelist)
+  hs.urlevent.bind("setBlacklist", m.setBlacklist)
+  hs.urlevent.bind("setWhitelist", m.setWhitelist)
+  hs.urlevent.bind("stopHeadspace", m.stopHeadspace)
 
   return self
 end
@@ -83,6 +84,7 @@ function m:stop()
 
   hs.urlevent.bind("setBlacklist", nil)
   hs.urlevent.bind("setWhitelist", nil)
+  hs.urlevent.bind("stopHeadspace", nil)
 
   return self
 end
@@ -104,13 +106,13 @@ m.allowed = function(app)
     return true
   end
 
-  if m.getWhitelist then
-    return fn.some(m.getWhitelist, function(tag)
+  if m.getWhitelist() then
+    return fn.some(m.getWhitelist(), function(tag)
       return fn.contains(tags, tag)
     end)
   else
-    if m.getBlacklist then
-      return fn.every(m.getBlacklist, function(tag)
+    if m.getBlacklist() then
+      return fn.every(m.getBlacklist(), function(tag)
         return not fn.contains(tags, tag)
       end)
     end
@@ -120,13 +122,17 @@ m.allowed = function(app)
 end
 
 function m.setBlacklist(_eventName, params)
-  local l = fn.split(params["tags"])
+  local l = fn.split(params["tags"], ",")
   hs.settings.set("headspace", { ["blacklist"] = l })
 end
 
 function m.setWhitelist(_eventName, params)
   local l = fn.split(params["tags"])
   hs.settings.set("headspace", { ["whitelist"] = l })
+end
+
+function m.stopHeadspace(_eventName, _params)
+  return m:stop()
 end
 
 return m
