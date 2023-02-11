@@ -46,4 +46,4 @@ hs.loadSpoon('Headspace'):start()
 
 ## Looking for the old version?
 
-The older version (integrated UI chooser and toggl tracker) is available for viewing here: [Version 1.1.4](https://github.com/evantravers/Headspace.spoon/tree/1.1.4)
+The [older version](https://evantravers.com/articles/2021/03/20/headspace-v1-0/) (integrated UI chooser and toggl tracker) is available for viewing here: [Version 1.1.4](https://github.com/evantravers/Headspace.spoon/tree/1.1.4)
