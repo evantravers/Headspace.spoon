@@ -30,10 +30,10 @@ jobs:
         with:
         # Filename for archive
           exclusions: '*.git*'
-          filename: Headspace.zip
+          filename: Headspace.spoon.zip
       - name: Upload Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "Headspace.zip"
+          artifacts: "Headspace.spoon.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
