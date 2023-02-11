@@ -1,45 +1,49 @@
 # Headspace
 
-A combination Toggl client and definer of workspaces. I use it to prevent me
-from keeping open distracting appliacations when I should be working.
+Protect your focus and keep your head in the right space by blocking distracting applications from even opening.
 
-Requires:
-- A toggl API token.
-  ([instructions](https://support.toggl.com/en/articles/3116844-where-is-my-api-token-located))
-- [AutoLayout.spoon](https://github.com/evantravers/AutoLayout.spoon)
-- A configuration table of spaces and applications. You can find mine
-  [here](https://github.com/evantravers/hammerspoon-config/blob/master/init.lua).
+Headspace once `:start()` listens for URL schemes of the following format:
+
+`hammerspoon://setBlacklist?tags=comma,separated,tags&apps=comma,separated,names`
+`hammerspoon://setWhitelist?tags=comma,separated,tags&apps=comma,separated,names`
+`hammerspoon://stopHeaspace`
+
+`setBlacklist` and `setWhitelist` are exclusive. Setting a new list will wipe out the previous settings.
+
+If an app is either [tagged in the MacOS filesystem](https://support.apple.com/guide/mac-help/tag-files-and-folders-mchlp15236/mac) with a matching tag or it's name is in the `apps` list it will be matched and the rules applied.
+
+MacOS doesn't let you tag built-in applications (Messages.app, Mail.app, etc.) so you can use the `apps` list to block them.
+
+Optionally, if you filesystem tag an application `whitelisted` no rules will ever be applied to it. This is useful for things like launchers or other tools you always want available.
+
+## Usage
+
+Using the URL scheme means that you can use _any_ tool as your main interface for Headspace:
+
+- [Bunch](https://bunchapp.co/) has [simple URL interactions](https://bunchapp.co/docs/bunch-files/opening-web-pages/).
+- [Shortcuts](https://support.apple.com/guide/shortcuts-mac/intro-to-shortcuts-apdf22b0444c/mac) using [the `Open URLs` action](https://support.apple.com/guide/shortcuts/intro-to-url-schemes-apd621a1ad7a/ios).
+- [Alfred Workflows](https://www.alfredapp.com/workflows/)
+- and more!
+
+## Examples
+
+Block distracting communications tools:  
+`hammerspoon://setBlacklist?tags=communication,distraction&apps=Mail,Messages`
+
+Only permit applications tagged `writing` for a Hemingway writing session:  
+`hammerspoon://setWhitelist?tags=writing`
+
+## Install
+
+1. MacOS
+2. [Hammerspoon](https://www.hammerspoon.org/go/) installed
+3. Download a [release](https://github.com/evantravers/Headspace.spoon/releases) to `~/.hammerspoon/Spoons/Headspace.spoon`
+4. Load the Spoon by adding the following code snippet to `~/.hammerspoon/init.lua`:
 
 ```lua
-local config = {
-  spaces = {
-    {
-      text = "Deep",
-      subText = "Work on focused work.",
-      blacklist = {'distraction'},
-      intentRequired = true
-    },
-    {
-      shallow = "Communication",
-      subText = "Talk to people.",
-      blacklist = {'focus'}
-    }
-  },
-  applications = {
-    ['com.apple.mail'] = {
-      bundleID = 'com.apple.mail',
-      tags = {'distraction'},
-    },
-    ['com.microsoft.VSCode'] = {
-      bundleID = 'com.microsoft.VSCode',
-      tags = {'focus'},
-    },
-  }
-}
-
-hs.loadSpoon('Headspace')
-spoon.Headspace:start()
-               :bindHotKeys({ choose = {{'control'}, 'space'}})
-               :setTogglKey('string of toggl API key')
-               :loadConfig(config)
+hs.loadSpoon('Headspace'):start()
 ```
+
+## Looking for the old version?
+
+The older version (integrated UI chooser and toggl tracker) is available for viewing here: [Version 1.1.4](https://github.com/evantravers/Headspace.spoon/tree/1.1.4)
