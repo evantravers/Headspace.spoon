@@ -1,24 +1,17 @@
 --- === Headspace ===
 ---
---- You need in namespace a table at `config.spaces`.
---- `config.spaces` is a table that is passed to a chooser.
+--- Headspace allows you to protect your focus for certain tasks by creating
+--- application blacklist or whitelists.
 ---
---- You can specify blocking of apps via a `whitelist`, `blacklist`, and you can
---- say what you want to have `launch` when you launch that space.
+--- Headspace once `:start()` listens for URL schemes of the following format:
+--- `hammerspoon://setBlacklist?tags=comma,separated,tags&apps=comma,separated,names`
+--- `hammerspoon://setWhitelist?tags=comma,separated,tags&apps=comma,separated,names`
+--- `hammerspoon://stopHeaspace`
 ---
---- A space with a `blacklist` will allow anything _but_ apps tagged with the
---- blacklist tags, untagged apps, or apps with a whitelisted attribute.
----
---- A space with a `whitelist` will allow **only** the apps tagged with tags in
---- the whitelist, untagged apps, or apps with a whitelisted attribute.
----
---- There is presently an interaction between the two where if an app is
---- whitelisted by a tag and blacklisted by a tag, whitelist wins.
----
---- The `launch` list tells the space to auto launch certain things at startup.
----
---- Optionally, you can define a setup function at config.spaces.<key> that is
---- run when the space is started.
+--- `setBlacklist` and `setWhitelist` are exclusive. Setting a new list will
+--- wipe out the previous settings. If an app is either tagged in the
+--- filesystem with a matching tag or it's name is in the `apps` list it will
+--- be matched and the rules applied.
 
 local m = {
   name = "Headspace",
@@ -43,7 +36,8 @@ local moduleStyle = fn.copy(hs.alert.defaultStyle)
 
 --- Headspace:start() -> table
 --- Method
---- Starts the application watcher that "blocks" applications.
+--- Starts the application watcher that "blocks" applications and sets up
+--- bindings for URL schemes.
 ---
 --- Returns:
 ---  * self
@@ -79,6 +73,7 @@ function m:stop()
   -- clear residual spaces
   hs.settings.clear("headspace")
 
+  -- destroy URL watchers
   hs.urlevent.bind("setBlacklist", nil)
   hs.urlevent.bind("setWhitelist", nil)
   hs.urlevent.bind("stopHeadspace", nil)
@@ -107,7 +102,7 @@ m.allowed = function(app)
   end
 
   if m.getWhitelist() then
-    local appAllowed  = false
+    local appAllowed = false
     local tagAllowed = false
 
     if m.getWhitelist().apps then
