@@ -3,10 +3,10 @@
 --- Headspace allows you to protect your focus for certain tasks by creating
 --- application blacklist or whitelists.
 ---
---- Headspace once `:start()` listens for URL schemes of the following format:
+--- Headspace listens for URL schemes of the following format:
 --- `hammerspoon://setBlacklist?tags=comma,separated,tags&apps=comma,separated,names`
 --- `hammerspoon://setWhitelist?tags=comma,separated,tags&apps=comma,separated,names`
---- `hammerspoon://stopHeaspace`
+--- `hammerspoon://stopHeadspace`
 ---
 --- `setBlacklist` and `setWhitelist` are exclusive. Setting a new list will
 --- wipe out the previous settings. If an app is either tagged in the

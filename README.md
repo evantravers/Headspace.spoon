@@ -2,11 +2,11 @@
 
 Protect your focus and keep your head in the right space by blocking distracting applications from even opening.
 
-Headspace once `:start()` listens for URL schemes of the following format:
+Headspace listens for URL schemes of the following format:
 
 `hammerspoon://setBlacklist?tags=comma,separated,tags&apps=comma,separated,names`
 `hammerspoon://setWhitelist?tags=comma,separated,tags&apps=comma,separated,names`
-`hammerspoon://stopHeaspace`
+`hammerspoon://stopHeadspace`
 
 `setBlacklist` and `setWhitelist` are exclusive. Setting a new list will wipe out the previous settings.
 
