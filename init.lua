@@ -137,6 +137,15 @@ m.allowed = function(app)
   return true
 end
 
+m.killBlockedDockedApps = function()
+  local dockedAndBlocked =
+    fn.filter(hs.application.runningApplications(), function(app)
+      return app:kind() == 1 and not m.allowed(app)
+    end)
+
+  fn.each(dockedAndBlocked, function(app) app:kill() end)
+end
+
 function m.setBlacklist(_eventName, params)
   local list = {}
 
@@ -148,6 +157,10 @@ function m.setBlacklist(_eventName, params)
   end
 
   hs.settings.set("headspace", { ["blacklist"] = list })
+
+  if params["kill"] then
+    m.killBlockedDockedApps()
+  end
 end
 
 function m.setWhitelist(_eventName, params)
@@ -161,6 +174,10 @@ function m.setWhitelist(_eventName, params)
   end
 
   hs.settings.set("headspace", { ["whitelist"] = list })
+
+  if params["kill"] then
+    m.killBlockedDockedApps()
+  end
 end
 
 function m.stopHeadspace(_eventName, _params)
