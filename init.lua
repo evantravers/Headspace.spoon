@@ -118,8 +118,8 @@ m.allowed = function(app)
   end
 
   if m.getBlacklist() then
-    local appBlocked = true
-    local tagBlocked = true
+    local appBlocked = false
+    local tagBlocked = false
 
     if m.getBlacklist().apps then
       appBlocked = fn.contains(m.getBlacklist().apps, name)
