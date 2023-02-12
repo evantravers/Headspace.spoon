@@ -2,15 +2,17 @@
 
 Protect your focus and keep your head in the right space by blocking distracting applications from even opening.
 
+## Controls
+
 Headspace listens for URL schemes of the following format:
 
-`hammerspoon://setBlacklist?tags=comma,separated,tags&apps=comma,separated,names&kill=<true or false>`
-`hammerspoon://setWhitelist?tags=comma,separated,tags&apps=comma,separated,names&kill=<true or false>`
-`hammerspoon://stopHeadspace`
+- `hammerspoon://setBlacklist?tags=comma,separated,tags&apps=comma,separated,names&kill=<true or false>`
+- `hammerspoon://setWhitelist?tags=comma,separated,tags&apps=comma,separated,names&kill=<true or false>`
+- `hammerspoon://stopHeadspace`
 
 `setBlacklist` and `setWhitelist` are exclusive. Setting a new list will wipe out the previous settings.
 
-If you pass `kill=true` the URL, Headspace will apply your new rules to any running applications in your OSX Dock, removing distractions.
+If you pass `kill=true` in the URL, Headspace will apply your new rules to any running applications in your OSX Dock, immediately killing matching applications.
 
 If an app is either [tagged in the MacOS filesystem](https://support.apple.com/guide/mac-help/tag-files-and-folders-mchlp15236/mac) with a matching tag or it's name is in the `apps` list it will be matched and the rules applied.
 
