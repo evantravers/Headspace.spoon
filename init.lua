@@ -137,10 +137,14 @@ m.allowed = function(app)
   return true
 end
 
+m.dockedAndNotFinder = function(app)
+  return app:bundleID() ~= "com.apple.finder" and app:kind() == 1
+end
+
 m.killBlockedDockedApps = function()
   local dockedAndBlocked =
     fn.filter(hs.application.runningApplications(), function(app)
-      return app:kind() == 1 and not m.allowed(app)
+      return m.dockedAndNotFinder(app) and not m.allowed(app)
     end)
 
   fn.each(dockedAndBlocked, function(app) app:kill() end)
